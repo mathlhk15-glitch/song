@@ -1,0 +1,4602 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>뀨의 AI Song Studio v3</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+KR:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg:       #0b0b0f;
+  --bg2:      #111118;
+  --bg3:      #18181f;
+  --bg4:      #1e1e28;
+  --border:   #252530;
+  --border2:  #353545;
+  --accent:   #c9a86c;
+  --accent2:  #e8c98e;
+  --accent3:  #f5e4c0;
+  --text:     #eae6de;
+  --text2:    #a09c94;
+  --text3:    #5e5a54;
+  --green:    #5ab896;
+  --red:      #d06a66;
+  --blue:     #6aacd4;
+  --purple:   #a87ad4;
+  --sidebar-w: 230px;
+}
+
+/* ━━━━ PAPER THEME ━━━━ */
+body.theme-paper {
+  --bg:       #f4f0e8;
+  --bg2:      #ede8dc;
+  --bg3:      #e5dfd2;
+  --bg4:      #ddd7c9;
+  --border:   #cdc6b5;
+  --border2:  #bbb3a0;
+  --accent:   #8b6914;
+  --accent2:  #6b4f0e;
+  --accent3:  #4a3408;
+  --text:     #2c2417;
+  --text2:    #5a4e3a;
+  --text3:    #8c7d65;
+  --green:    #2d7a57;
+  --red:      #a8413d;
+  --blue:     #2b6896;
+  --purple:   #6b48a8;
+}
+body.theme-paper #sidebar {
+  background: linear-gradient(180deg, #e8e2d6 0%, #dfd9cc 100%);
+}
+body.theme-paper .sidebar-logo {
+  background: linear-gradient(180deg, rgba(139,105,20,0.08) 0%, transparent 100%);
+}
+body.theme-paper input[type="text"],
+body.theme-paper input[type="number"],
+body.theme-paper select,
+body.theme-paper textarea {
+  background: #f9f6ef;
+  color: var(--text);
+}
+body.theme-paper .result-box textarea,
+body.theme-paper .prompt-block textarea {
+  background: transparent;
+  color: var(--text);
+}
+body.theme-paper select option { background: #f9f6ef; color: var(--text); }
+
+/* ━━━━ THEME TOGGLE BUTTON ━━━━ */
+.theme-toggle-bar {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.theme-btn {
+  flex: 1;
+  padding: 5px 4px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--text3);
+  font-size: 10px;
+  font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.14s;
+  user-select: none;
+  line-height: 1.5;
+}
+.theme-btn:hover { border-color: var(--accent); color: var(--text); }
+.theme-btn.active {
+  background: rgba(201,168,108,0.18);
+  border-color: var(--accent);
+  color: var(--accent2);
+  font-weight: 600;
+}
+body.theme-paper .theme-btn.active {
+  background: rgba(139,105,20,0.15);
+}
+.theme-toggle-label {
+  font-size: 9px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  min-width: 32px;
+}
+
+/* ━━━━ PHOTO PREPROCESSING ━━━━ */
+.preproc-panel {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px 14px; margin-top: 10px;
+}
+.preproc-title {
+  font-size: 10.5px; color: var(--accent);
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px;
+}
+.preproc-slider-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 8px; font-size: 12px; color: var(--text2);
+}
+.preproc-slider-row span:first-child { min-width: 60px; }
+.preproc-slider-row input[type="range"] {
+  flex: 1; height: 4px; accent-color: var(--accent);
+  background: var(--bg4); cursor: pointer;
+  border: none; padding: 0;
+}
+.preproc-val {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: var(--accent); min-width: 36px; text-align: right;
+}
+.preproc-preview-grid { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.preproc-preview-item { flex: 1; min-width: 120px; }
+.preproc-preview-label {
+  font-size: 10px; color: var(--text3);
+  font-family: 'JetBrains Mono', monospace; margin-bottom: 4px;
+}
+.preproc-preview-item img {
+  width: 100%; border-radius: 5px; border: 1px solid var(--border);
+  max-height: 140px; object-fit: contain; background: var(--bg4); display: block;
+}
+.mode-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+  padding: 3px 9px; border-radius: 4px;
+  background: rgba(90,184,150,0.14);
+  border: 1px solid rgba(90,184,150,0.3); color: var(--green);
+}
+.mode-badge.tess {
+  background: rgba(106,172,212,0.14);
+  border-color: rgba(106,172,212,0.3); color: var(--blue);
+}
+.photo-info-banner {
+  display: none;
+  margin-top: 10px;
+  padding: 11px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  gap: 10px;
+  align-items: flex-start;
+}
+.photo-info-banner.show { display: flex; }
+.photo-info-banner.info {
+  background: rgba(90,184,150,0.12);
+  border: 1px solid rgba(90,184,150,0.35);
+  color: var(--green);
+}
+.photo-info-banner.error {
+  background: rgba(208,106,102,0.12);
+  border: 1px solid rgba(208,106,102,0.35);
+  color: var(--red);
+}
+.pib-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.pib-msg { flex: 1; }
+.pib-close {
+  flex-shrink: 0; cursor: pointer; font-size: 14px;
+  background: none; border: none; color: inherit; opacity: 0.7;
+  padding: 0; line-height: 1;
+}
+.pib-close:hover { opacity: 1; }
+
+.extract-edit-box {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 8px; overflow: hidden; margin-top: 12px;
+}
+.extract-edit-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 14px; background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+}
+.extract-edit-label {
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  color: var(--accent); letter-spacing: 0.05em;
+}
+.extract-edit-box textarea {
+  border: none; border-radius: 0; background: transparent;
+  font-family: 'Noto Sans KR', sans-serif; font-size: 13px;
+  line-height: 1.75; color: var(--text); min-height: 160px; padding: 12px 14px;
+}
+.extract-edit-box textarea:focus { outline: none; border: none; }
+body.theme-paper .extract-edit-box textarea { color: var(--text); }
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 14px; }
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  overflow: hidden;
+}
+
+/* ━━━━ SIDEBAR ━━━━ */
+#sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border2) transparent;
+}
+.sidebar-logo {
+  padding: 22px 18px 16px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(201,168,108,0.06) 0%, transparent 100%);
+}
+.logo-main {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.03em;
+}
+.logo-badge {
+  display: inline-block;
+  background: rgba(201,168,108,0.2);
+  color: var(--accent2);
+  font-size: 9px;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-left: 6px;
+  letter-spacing: 0.05em;
+}
+.logo-sub {
+  font-size: 10px;
+  color: var(--text3);
+  margin-top: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.04em;
+}
+
+.sidebar-group {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-group:last-child { border-bottom: none; }
+
+.sidebar-section-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--text3);
+  padding: 10px 18px 4px;
+  text-transform: uppercase;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 18px;
+  cursor: pointer;
+  font-size: 12.5px;
+  color: var(--text2);
+  border-left: 2px solid transparent;
+  transition: all 0.15s;
+  user-select: none;
+  position: relative;
+}
+.sidebar-item:hover { background: var(--bg3); color: var(--text); }
+.sidebar-item.active {
+  background: linear-gradient(90deg, rgba(201,168,108,0.13), transparent);
+  border-left-color: var(--accent);
+  color: var(--accent2);
+  font-weight: 500;
+}
+.sidebar-item .si-icon { font-size: 13px; min-width: 18px; text-align: center; }
+.sidebar-item .si-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: var(--text3);
+  min-width: 14px;
+}
+.sidebar-item.active .si-num { color: var(--accent); }
+.step-dot {
+  margin-left: auto;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid var(--border2);
+  flex-shrink: 0;
+}
+.sidebar-item.done .step-dot { background: var(--green); border-color: var(--green); }
+.sidebar-item.active.done .step-dot { background: var(--accent); border-color: var(--accent); }
+
+/* progress bar in sidebar */
+.sidebar-progress {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.prog-label {
+  font-size: 10px;
+  color: var(--text3);
+  font-family: 'JetBrains Mono', monospace;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+}
+.prog-track {
+  height: 3px;
+  background: var(--bg4);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.prog-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 2px;
+  transition: width 0.4s ease;
+  width: 0%;
+}
+
+/* ━━━━ MAIN ━━━━ */
+#main {
+  flex: 1;
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--bg);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border2) transparent;
+}
+
+.page { display: none; padding: 36px 42px; max-width: 900px; }
+.page.active { display: block; animation: fadeIn 0.2s ease; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+.page-title {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--accent2);
+  margin-bottom: 5px;
+}
+.page-desc {
+  font-size: 12.5px;
+  color: var(--text3);
+  line-height: 1.6;
+}
+.page-step-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* ━━━━ CARDS ━━━━ */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 14px;
+}
+.card-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ━━━━ FORMS ━━━━ */
+label {
+  display: block;
+  font-size: 11.5px;
+  color: var(--text2);
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+input[type="text"], input[type="number"], select, textarea {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 13px;
+  padding: 9px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+  resize: vertical;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+select option { background: var(--bg3); }
+textarea { min-height: 88px; line-height: 1.7; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+.form-group { margin-bottom: 14px; }
+.form-group:last-child { margin-bottom: 0; }
+
+/* pills */
+.check-group { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 2px; }
+.check-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 20px; padding: 5px 12px;
+  font-size: 12px; color: var(--text2);
+  cursor: pointer; transition: all 0.13s; user-select: none;
+}
+.check-pill:hover { border-color: var(--accent); color: var(--text); }
+.check-pill.selected {
+  background: rgba(201,168,108,0.14);
+  border-color: var(--accent);
+  color: var(--accent2);
+}
+.check-pill input { display: none; }
+
+/* ━━━━ BUTTONS ━━━━ */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 18px; border-radius: 7px;
+  font-size: 13px; font-family: 'Noto Sans KR', sans-serif;
+  font-weight: 500; cursor: pointer; border: none;
+  transition: all 0.14s;
+}
+.btn-primary { background: var(--accent); color: #150f00; }
+.btn-primary:hover { background: var(--accent2); transform: translateY(-1px); }
+.btn-secondary { background: var(--bg3); border: 1px solid var(--border2); color: var(--text2); }
+.btn-secondary:hover { border-color: var(--accent); color: var(--text); }
+.btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text3); padding: 6px 12px; font-size: 12px; }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn-danger { background: rgba(208,106,102,0.14); border: 1px solid rgba(208,106,102,0.35); color: var(--red); padding: 5px 10px; font-size: 12px; }
+.btn-danger:hover { background: rgba(208,106,102,0.24); }
+.btn-green { background: rgba(90,184,150,0.14); border: 1px solid rgba(90,184,150,0.35); color: var(--green); }
+.btn-green:hover { background: rgba(90,184,150,0.24); }
+.btn-blue { background: rgba(106,172,212,0.14); border: 1px solid rgba(106,172,212,0.35); color: var(--blue); }
+.btn-blue:hover { background: rgba(106,172,212,0.24); }
+.btn-row { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; align-items: center; }
+
+/* ━━━━ RESULT BOX ━━━━ */
+.result-box {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 8px; overflow: hidden; margin-top: 12px;
+}
+.result-box-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.025);
+  border-bottom: 1px solid var(--border);
+}
+.result-box-label { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text3); letter-spacing: 0.05em; }
+.result-box textarea {
+  border: none; border-radius: 0; background: transparent;
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  line-height: 1.8; color: var(--text); min-height: 200px; padding: 14px;
+}
+.result-box textarea:focus { border: none; outline: none; }
+
+/* ━━━━ SONG ROW ━━━━ */
+.song-row {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 8px; padding: 14px; margin-bottom: 10px;
+}
+.song-row-header { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; }
+.song-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text3); min-width: 20px; padding-top: 10px; }
+.song-detail-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+/* ━━━━ MODE TABS ━━━━ */
+.mode-tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+.mode-tab {
+  padding: 7px 15px; border-radius: 6px; font-size: 12px; cursor: pointer;
+  border: 1px solid var(--border); background: var(--bg2); color: var(--text2);
+  transition: all 0.13s; user-select: none;
+}
+.mode-tab:hover { border-color: var(--accent); color: var(--text); }
+.mode-tab.active { background: rgba(201,168,108,0.14); border-color: var(--accent); color: var(--accent2); }
+.mode-panel { display: none; }
+.mode-panel.active { display: block; }
+
+/* ━━━━ PROMPT BLOCK ━━━━ */
+.prompt-block {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden; margin-bottom: 14px;
+}
+.prompt-block-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 16px; background: var(--bg3); border-bottom: 1px solid var(--border);
+}
+.prompt-block-title { font-size: 11.5px; font-weight: 600; color: var(--accent); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; }
+.prompt-block textarea {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  min-height: 140px; padding: 14px 16px; line-height: 1.85;
+  background: transparent; border: none; border-radius: 0;
+}
+.prompt-block textarea:focus { outline: none; border: none; }
+
+/* ━━━━ STEP GENERATE ━━━━ */
+.step-generate {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 10px; padding: 18px; margin-bottom: 14px;
+}
+.step-generate-label {
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text3); margin-bottom: 12px; letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ━━━━ EVALUATION ━━━━ */
+.eval-row {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 8px; padding: 16px; margin-bottom: 10px;
+}
+.eval-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.eval-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.star-row { display: flex; gap: 4px; margin: 8px 0; }
+.star { font-size: 20px; cursor: pointer; color: var(--text3); transition: color 0.1s; user-select: none; }
+.star.on { color: var(--accent); }
+.issue-checks { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.issue-check {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 5px; padding: 4px 10px; font-size: 12px; color: var(--text2);
+  cursor: pointer; transition: all 0.12s; user-select: none;
+}
+.issue-check.selected { background: rgba(208,106,102,0.14); border-color: rgba(208,106,102,0.5); color: var(--red); }
+.issue-check input { display: none; }
+
+/* ━━━━ 30-BLOCK GRID ━━━━ */
+.block-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 8px; margin-bottom: 14px;
+}
+.block-cell {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 7px; padding: 10px 8px; cursor: pointer;
+  transition: all 0.13s; text-align: center;
+}
+.block-cell:hover { border-color: var(--accent); }
+.block-cell.selected { background: rgba(201,168,108,0.12); border-color: var(--accent); }
+.block-cell .bc-num { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text3); margin-bottom: 3px; }
+.block-cell .bc-name { font-size: 11px; color: var(--text2); }
+.block-cell .bc-time { font-size: 10px; color: var(--text3); margin-top: 2px; }
+.block-cell.done .bc-num { color: var(--green); }
+.block-cell.done { border-color: rgba(90,184,150,0.3); }
+
+/* ━━━━ VERSION ━━━━ */
+.version-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 10px 14px; background: var(--bg3);
+  border: 1px solid var(--border); border-radius: 7px; margin-bottom: 8px;
+}
+.version-tag {
+  background: rgba(201,168,108,0.18); color: var(--accent);
+  border-radius: 4px; padding: 2px 8px; font-size: 10.5px;
+  font-family: 'JetBrains Mono', monospace; white-space: nowrap;
+}
+
+/* ━━━━ EXPORT GRID ━━━━ */
+.export-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.export-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 18px; cursor: pointer; transition: all 0.14s;
+}
+.export-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.ec-icon { font-size: 26px; margin-bottom: 8px; }
+.ec-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.ec-desc { font-size: 11.5px; color: var(--text3); line-height: 1.5; }
+
+/* ━━━━ NOTICE ━━━━ */
+.notice {
+  background: rgba(201,168,108,0.07); border: 1px solid rgba(201,168,108,0.2);
+  border-radius: 7px; padding: 11px 14px; font-size: 12px; color: var(--text2);
+  line-height: 1.6; margin-bottom: 14px;
+}
+.notice strong { color: var(--accent); }
+.notice.danger { background: rgba(208,106,102,0.07); border-color: rgba(208,106,102,0.2); }
+.notice.danger strong { color: var(--red); }
+
+/* ━━━━ COPY MSG ━━━━ */
+.copy-msg { font-size: 11px; color: var(--green); font-family: 'JetBrains Mono', monospace; opacity: 0; transition: opacity 0.2s; pointer-events: none; }
+.copy-msg.show { opacity: 1; }
+
+/* ━━━━ PHOTO UPLOAD ━━━━ */
+.photo-drop-zone {
+  border: 2px dashed var(--border2);
+  border-radius: 10px;
+  padding: 28px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--bg3);
+  position: relative;
+}
+.photo-drop-zone:hover,
+.photo-drop-zone.dragover {
+  border-color: var(--accent);
+  background: rgba(201,168,108,0.07);
+}
+.photo-drop-zone .pdz-icon { font-size: 32px; margin-bottom: 8px; }
+.photo-drop-zone .pdz-title { font-size: 14px; color: var(--text); font-weight: 600; margin-bottom: 4px; }
+.photo-drop-zone .pdz-sub { font-size: 12px; color: var(--text3); }
+.photo-drop-zone input[type="file"] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer;
+  width: 100%; height: 100%; border: none; background: none; padding: 0;
+}
+.photo-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+.photo-preview-item {
+  position: relative;
+  border-radius: 7px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--bg4);
+  aspect-ratio: 1;
+}
+.photo-preview-item img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.photo-preview-item .ppi-remove {
+  position: absolute; top: 3px; right: 3px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: rgba(0,0,0,0.65); color: #fff;
+  font-size: 10px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; border: none; line-height: 1;
+}
+.photo-preview-item .ppi-status {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: rgba(0,0,0,0.65); padding: 3px 5px;
+  font-size: 9px; color: #fff; font-family: 'JetBrains Mono', monospace;
+  text-align: center;
+}
+.photo-extract-progress {
+  margin-top: 10px; padding: 10px 14px;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 8px; font-size: 12px; color: var(--text2);
+  display: none;
+}
+.photo-extract-progress.active { display: block; }
+.pep-bar-track { height: 4px; background: var(--bg4); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+.pep-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 2px; transition: width 0.4s; }
+
+/* ━━━━ DIVIDER ━━━━ */
+hr.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+/* ━━━━ FLOW GUIDE ━━━━ */
+.flow-steps { display: flex; gap: 0; margin-bottom: 20px; flex-wrap: nowrap; overflow-x: auto; }
+.flow-step {
+  display: flex; align-items: center; flex-shrink: 0;
+}
+.flow-step-inner {
+  background: var(--bg2); border: 1px solid var(--border);
+  padding: 7px 13px; border-radius: 6px; font-size: 11px;
+  color: var(--text2); display: flex; align-items: center; gap: 6px;
+  cursor: pointer; transition: all 0.13s; white-space: nowrap;
+}
+.flow-step-inner:hover { border-color: var(--accent); color: var(--text); }
+.flow-step-inner.active { background: rgba(201,168,108,0.12); border-color: var(--accent); color: var(--accent2); }
+.flow-arrow { color: var(--text3); font-size: 12px; padding: 0 4px; }
+
+/* ━━━━ AUTOSAVE INDICATOR ━━━━ */
+#autosaveBar {
+  padding: 7px 14px 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10.5px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text3);
+  letter-spacing: 0.02em;
+  min-height: 32px;
+  transition: color 0.3s;
+}
+#autosaveBar.saved { color: var(--green); }
+#autosaveBar.saving { color: var(--accent); }
+#autosaveBar.warn { color: var(--red); }
+#autosaveBar .asave-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor; flex-shrink: 0;
+}
+
+/* ━━━━ USER MODE SELECTOR ━━━━ */
+.user-mode-bar {
+  padding: 10px 18px;
+  background: rgba(201,168,108,0.05);
+  border-bottom: 1px solid var(--border);
+}
+.user-mode-label {
+  font-size: 9px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 7px;
+}
+.user-mode-btns {
+  display: flex;
+  gap: 5px;
+}
+.user-mode-btn {
+  flex: 1;
+  padding: 6px 4px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--text3);
+  font-size: 10px;
+  font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.14s;
+  line-height: 1.4;
+  user-select: none;
+}
+.user-mode-btn:hover { border-color: var(--accent); color: var(--text); }
+.user-mode-btn.active {
+  background: rgba(201,168,108,0.18);
+  border-color: var(--accent);
+  color: var(--accent2);
+  font-weight: 500;
+}
+.user-mode-btn .umb-icon { font-size: 13px; display: block; margin-bottom: 2px; }
+
+/* 모드별 숨김 처리 */
+.beginner-only { display: none; }
+.expert-only { display: none; }
+body.mode-beginner .beginner-only { display: block; }
+body.mode-beginner .expert-only { display: none; }
+body.mode-expert .expert-only { display: block; }
+
+/* 사이드바 항목 모드 제한 */
+body.mode-beginner .sidebar-item.intermediate-hidden { display: none; }
+body.mode-beginner .sidebar-item.expert-hidden { display: none; }
+body.mode-intermediate .sidebar-item.expert-hidden { display: none; }
+
+/* ━━━━ TOOLTIP ━━━━ */
+.tooltip-wrap {
+  position: relative;
+  display: inline-block;
+}
+.tooltip-wrap .tip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  background: var(--bg4);
+  border: 1px solid var(--border2);
+  font-size: 9px;
+  color: var(--text3);
+  cursor: help;
+  font-style: normal;
+  margin-left: 5px;
+  vertical-align: middle;
+  line-height: 1;
+}
+.tooltip-wrap .tip-body {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg4);
+  border: 1px solid var(--border2);
+  border-radius: 7px;
+  padding: 8px 11px;
+  font-size: 11.5px;
+  color: var(--text);
+  white-space: nowrap;
+  z-index: 100;
+  line-height: 1.5;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  pointer-events: none;
+}
+.tooltip-wrap:hover .tip-body { display: block; }
+.tip-arrow {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--border2);
+  width: 0; height: 0;
+}
+
+/* ━━━━ CHECKLIST (초보자 모드) ━━━━ */
+.step-checklist {
+  background: rgba(201,168,108,0.05);
+  border: 1px solid rgba(201,168,108,0.2);
+  border-radius: 8px;
+  padding: 13px 16px;
+  margin-bottom: 14px;
+}
+.step-checklist-title {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--accent);
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.07em;
+  margin-bottom: 9px;
+  text-transform: uppercase;
+}
+.checklist-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 5px 0;
+  font-size: 12.5px;
+  color: var(--text2);
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.12s;
+}
+.checklist-item input[type="checkbox"] { display: none; }
+.checklist-box {
+  width: 15px; height: 15px;
+  border-radius: 4px;
+  border: 1.5px solid var(--border2);
+  background: var(--bg3);
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px;
+  color: var(--green);
+  transition: all 0.13s;
+}
+.checklist-item.checked .checklist-box {
+  background: rgba(90,184,150,0.18);
+  border-color: var(--green);
+}
+.checklist-item.checked .checklist-box::after { content: '✓'; }
+.checklist-item.checked span { text-decoration: line-through; color: var(--text3); }
+
+/* ━━━━ BEGINNER SIMPLE VIEW ━━━━ */
+/* 초보자 모드: 일부 고급 섹션을 접기 */
+.advanced-section {
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+.advanced-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--text3);
+  cursor: pointer;
+  padding: 6px 0;
+  margin-bottom: 8px;
+  user-select: none;
+  border: none;
+  background: none;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+.advanced-toggle:hover { color: var(--accent); }
+.advanced-toggle .at-arrow { transition: transform 0.2s; }
+.advanced-toggle.open .at-arrow { transform: rotate(180deg); }
+
+/* ━━━━ VOCAL IDENTITY / NEGATIVE PROMPT ━━━━ */
+.vci-group {
+  display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px;
+}
+.vci-pill {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 11px;
+  border-radius: 20px;
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text2);
+  user-select: none;
+  transition: all 0.14s;
+}
+.vci-pill input { display: none; }
+.vci-pill:hover { border-color: var(--purple); color: var(--text); }
+.vci-pill.selected {
+  background: rgba(168,122,212,0.15);
+  border-color: var(--purple);
+  color: #d4a8f0;
+}
+.neg-pill {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 11px;
+  border-radius: 20px;
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text2);
+  user-select: none;
+  transition: all 0.14s;
+}
+.neg-pill input { display: none; }
+.neg-pill:hover { border-color: var(--red); color: var(--text); }
+.neg-pill.selected {
+  background: rgba(208,106,102,0.13);
+  border-color: var(--red);
+  color: #f09090;
+}
+
+/* ━━━━ FINAL LYRICS SELECTOR ━━━━ */
+.final-lyrics-tabs {
+  display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;
+}
+.fl-tab {
+  padding: 7px 14px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--text3);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.13s;
+  user-select: none;
+}
+.fl-tab:hover { border-color: var(--green); color: var(--text); }
+.fl-tab.active {
+  background: rgba(90,184,150,0.15);
+  border-color: var(--green);
+  color: #7de0c0;
+  font-weight: 500;
+}
+
+/* ━━━━ WORKSPACE (P11) ━━━━ */
+.workspace-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.ws-block {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+}
+.ws-block-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text3);
+  margin-bottom: 8px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.ws-block textarea {
+  width: 100%; min-height: 120px; font-size: 12px; resize: vertical;
+}
+.ws-full { grid-column: 1 / -1; }
+.ws-package-btn {
+  background: linear-gradient(135deg, rgba(201,168,108,0.2), rgba(90,184,150,0.15));
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 18px 22px;
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 18px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.ws-package-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(201,168,108,0.2); }
+.ws-pkg-label { font-size: 14px; font-weight: 600; color: var(--accent2); }
+.ws-pkg-desc { font-size: 12px; color: var(--text2); margin-top: 3px; }
+
+/* ━━━━ REVERT BUTTON ━━━━ */
+.version-revert-btn {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 5px;
+  border: 1px solid var(--border2);
+  background: var(--bg4);
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.13s;
+  white-space: nowrap;
+}
+.version-revert-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ━━━━ RESPONSIVE ━━━━ */
+@media (max-width: 900px) {
+  .page { padding: 24px 20px; }
+  .form-row { grid-template-columns: 1fr; }
+  .export-grid { grid-column: 1fr; }
+  .song-detail-grid { grid-template-columns: 1fr; }
+  .block-grid { grid-template-columns: repeat(4, 1fr); }
+  .workspace-grid { grid-template-columns: 1fr; }
+  .ws-full { grid-column: 1; }
+}
+
+/* ━━━━ MOBILE HAMBURGER ━━━━ */
+#hamburger-btn {
+  display: none;
+  position: fixed;
+  top: 14px; left: 14px;
+  z-index: 200;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  width: 40px; height: 40px;
+  cursor: pointer;
+  font-size: 18px;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+}
+#sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 150;
+}
+@media (max-width: 900px) {
+  #hamburger-btn { display: flex; }
+  #sidebar {
+    position: fixed;
+    left: -260px;
+    top: 0;
+    z-index: 160;
+    transition: left 0.22s ease;
+    height: 100vh;
+  }
+  #sidebar.open { left: 0; }
+  #sidebar-overlay.open { display: block; }
+  #main { width: 100%; padding-top: 64px; }
+}
+
+/* ━━━━ GENRE CUSTOM INPUT (STEP6) ━━━━ */
+#genreCustomWrap {
+  display: none;
+  margin-top: 6px;
+}
+#genreCustomWrap input {
+  width: 100%;
+  background: var(--bg4);
+  border: 1px solid var(--border2);
+  border-radius: 7px;
+  color: var(--text);
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+/* ━━━━ NEW PROJECT BUTTON ━━━━ */
+.new-project-btn {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 9px 0;
+  background: transparent;
+  border: 1px dashed var(--border2);
+  border-radius: 7px;
+  color: var(--text3);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+.new-project-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ━━━━ GEMINI BLOCK COLLAPSE ━━━━ */
+.gemini-collapse-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+.gemini-collapse-toggle {
+  font-size: 11px;
+  color: var(--text3);
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg4);
+  transition: all 0.13s;
+}
+.gemini-collapse-toggle:hover { color: var(--accent); border-color: var(--accent); }
+.gemini-collapse-body { transition: max-height 0.2s ease; overflow: hidden; }
+.gemini-collapse-body.collapsed { max-height: 0 !important; }
+
+/* ━━━━ STEP-DOT AUTO UPDATE ━━━━ */
+/* done 상태는 JS에서 동적 부여 */
+</style>
+<!-- Tesseract.js: 브라우저 내장 OCR (API 불필요) -->
+<script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
+</head>
+<body>
+<button id="hamburger-btn" onclick="toggleSidebar()" aria-label="메뉴">☰</button>
+<div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<!-- ━━━━ SIDEBAR ━━━━ -->
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-main">뀨의 AI Song Studio<span class="logo-badge">v3</span></div>
+    <div class="logo-sub">API-free · 개인용 작곡 워크스테이션</div>
+  </div>
+
+  <div class="sidebar-progress">
+    <div class="prog-label"><span>진행률</span><span id="progPct">0%</span></div>
+    <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+  </div>
+
+  <div id="autosaveBar" class="saved">
+    <span class="asave-dot"></span>
+    <span id="autosaveText">자동 저장됨</span>
+  </div>
+
+  <!-- ━━ 테마 전환 ━━ -->
+  <div class="theme-toggle-bar">
+    <span class="theme-toggle-label">테마</span>
+    <button class="theme-btn active" id="themeBtn-dark" onclick="setTheme('dark')">🌙 다크</button>
+    <button class="theme-btn" id="themeBtn-paper" onclick="setTheme('paper')">📄 종이</button>
+  </div>
+
+  <!-- ━━ 사용자 모드 선택기 ━━ -->
+  <div class="user-mode-bar">
+    <div class="user-mode-label">사용자 모드</div>
+    <div class="user-mode-btns">
+      <div class="user-mode-btn active" id="umb-beginner" onclick="setUserMode('beginner')">
+        <span class="umb-icon">🌱</span>초보자
+      </div>
+      <div class="user-mode-btn" id="umb-intermediate" onclick="setUserMode('intermediate')">
+        <span class="umb-icon">🎵</span>중급자
+      </div>
+      <div class="user-mode-btn" id="umb-expert" onclick="setUserMode('expert')">
+        <span class="umb-icon">🎛️</span>전문가
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-group">
+    <div class="sidebar-section-label">프로젝트</div>
+    <div class="sidebar-item active" data-page="p0"><span class="si-icon">📁</span><span>프로젝트 설정</span><span class="step-dot"></span></div>
+  </div>
+
+  <div class="sidebar-group">
+    <div class="sidebar-section-label">입력</div>
+    <div class="sidebar-item" data-page="p1"><span class="si-num">①</span><span>입력 방식</span><span class="step-dot"></span></div>
+    <div class="sidebar-item" data-page="p2"><span class="si-num">②</span><span>곡 방향 설정</span><span class="step-dot"></span></div>
+  </div>
+
+  <div class="sidebar-group">
+    <div class="sidebar-section-label">AI 작업 (Claude/GPT)</div>
+    <div class="sidebar-item" data-page="p3"><span class="si-num">③</span><span>음악 DNA 분석</span><span class="step-dot"></span></div>
+    <div class="sidebar-item" data-page="p4"><span class="si-num">④</span><span>곡 콘셉트</span><span class="step-dot"></span></div>
+    <div class="sidebar-item" data-page="p5"><span class="si-num">⑤</span><span>곡 구조 설계</span><span class="step-dot"></span></div>
+    <div class="sidebar-item" data-page="p6"><span class="si-num">⑥</span><span>가사 생성 / 편곡</span><span class="step-dot"></span></div>
+    <div class="sidebar-item intermediate-hidden" data-page="p6b"><span class="si-num">⑦</span><span>가사 보정</span><span class="step-dot"></span></div>
+  </div>
+
+  <div class="sidebar-group">
+    <div class="sidebar-section-label">Gemini Lyria</div>
+    <div class="sidebar-item" data-page="p7"><span class="si-num">⑧</span><span>Gemini 프롬프트</span><span class="step-dot"></span></div>
+    <div class="sidebar-item intermediate-hidden" data-page="p8"><span class="si-num">⑨</span><span>제작 평가 · 수정</span><span class="step-dot"></span></div>
+  </div>
+
+  <div class="sidebar-group">
+    <div class="sidebar-section-label">관리</div>
+    <div class="sidebar-item" data-page="p11"><span class="si-icon">🗂️</span><span>전체 작업공간</span><span class="step-dot"></span></div>
+    <div class="sidebar-item" data-page="p9"><span class="si-icon">📚</span><span>버전 히스토리</span><span class="step-dot"></span></div>
+    <div class="sidebar-item" data-page="p10"><span class="si-icon">💾</span><span>내보내기 / 저장</span><span class="step-dot"></span></div>
+  </div>
+</nav>
+
+<!-- ━━━━ MAIN ━━━━ -->
+<main id="main">
+
+<!-- ─── P0: 프로젝트 설정 ─── -->
+<div class="page active" id="p0">
+  <div class="page-header">
+    <div>
+      <div class="page-title">프로젝트 설정</div>
+      <div class="page-desc">작업할 곡의 기본 정보를 입력합니다.</div>
+    </div>
+    <span class="page-step-badge">PROJECT</span>
+  </div>
+
+  <!-- 초보자 모드 안내 (beginner-only) -->
+  <div class="beginner-only">
+    <div class="notice" style="margin-bottom:14px">
+      <strong>🌱 초보자 모드입니다.</strong> 복잡한 설정은 숨겨져 있고, 꼭 필요한 단계만 표시됩니다.<br>
+      언제든지 사이드바 상단에서 <strong>중급자 / 전문가 모드</strong>로 전환할 수 있습니다.
+    </div>
+    <!-- 초보자 완료 체크리스트 -->
+    <div class="step-checklist">
+      <div class="step-checklist-title">✅ 이 단계 완료 기준</div>
+      <label class="checklist-item" onclick="toggleChecklist(this)">
+        <input type="checkbox"><span class="checklist-box"></span><span>프로젝트 이름을 입력했다</span>
+      </label>
+      <label class="checklist-item" onclick="toggleChecklist(this)">
+        <input type="checkbox"><span class="checklist-box"></span><span>내 이름(제작자)을 입력했다</span>
+      </label>
+      <label class="checklist-item" onclick="toggleChecklist(this)">
+        <input type="checkbox"><span class="checklist-box"></span><span>이 곡을 어디에 쓸지 선택했다</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📁 기본 정보</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>프로젝트명 (곡 제목 후보)</label>
+        <input type="text" id="projectName" placeholder="접어둔 계절">
+      </div>
+      <div class="form-group">
+        <label>제작자 이름</label>
+        <input type="text" id="projectAuthor" placeholder="뀨">
+      </div>
+    </div>
+    <div class="form-row three">
+      <div class="form-group">
+        <label>곡 수</label>
+        <select id="songCount">
+          <option>1곡</option>
+          <option>3곡 미니앨범</option>
+          <option>여러 곡</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>목표 길이</label>
+        <select id="songLength">
+          <option>3분 (180초)</option>
+          <option>30초 (미리보기)</option>
+          <option>1분 (60초)</option>
+          <option>2분 (120초)</option>
+          <option>4분 (240초)</option>
+          <option>5분 (300초)</option>
+          <option>직접 입력</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>생성 방식</label>
+        <select id="genMode">
+          <option>큰 블록 3개</option>
+          <option>30초 10블록</option>
+          <option>둘 다 생성</option>
+          <option>자동 추천</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>사용 목적 (복수 선택)</label>
+      <div class="check-group" id="purposeGroup">
+        <label class="check-pill"><input type="checkbox" value="개인 감상">개인 감상</label>
+        <label class="check-pill"><input type="checkbox" value="유튜브">유튜브</label>
+        <label class="check-pill"><input type="checkbox" value="학교 행사">학교 행사</label>
+        <label class="check-pill"><input type="checkbox" value="영상 BGM">영상 BGM</label>
+        <label class="check-pill"><input type="checkbox" value="선물">선물</label>
+        <label class="check-pill"><input type="checkbox" value="졸업식">졸업식</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>프로젝트 메모</label>
+      <textarea id="projectMemo" placeholder="이 곡에 대한 생각, 배경, 특이사항 등을 자유롭게 적어주세요."></textarea>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="saveProject(); goTo('p1')">저장하고 다음 →</button>
+    <button class="btn btn-secondary" onclick="loadExample()">예시 데이터 불러오기</button>
+    <button class="btn btn-ghost beginner-only" onclick="applyBeginnerDefaults()" title="초보자에게 추천하는 기본값을 자동으로 채워줍니다">🌱 기본값 자동입력</button>
+  </div>
+  <button class="new-project-btn" onclick="newProject()">✚ 새 프로젝트 시작 (현재 데이터 초기화)</button>
+</div>
+
+<!-- ─── P1: 입력 방식 ─── -->
+<div class="page" id="p1">
+  <div class="page-header">
+    <div>
+      <div class="page-title">입력 방식 선택</div>
+      <div class="page-desc">곡 제작의 출발점을 고릅니다. 여러 방식을 동시에 활용할 수 있습니다.</div>
+    </div>
+    <span class="page-step-badge">STEP ①</span>
+  </div>
+
+  <!-- 초보자 안내 -->
+  <div class="beginner-only">
+    <div class="notice" style="margin-bottom:12px">
+      <strong>🎵 초보자라면 "레퍼런스 노래"를 추천합니다.</strong><br>
+      좋아하는 노래 3~5곡을 입력하면 AI가 공통 감성을 분석해 드립니다. 곡명과 가수명만 알면 됩니다!
+    </div>
+    <div class="step-checklist">
+      <div class="step-checklist-title">✅ 이 단계 완료 기준</div>
+      <label class="checklist-item" onclick="toggleChecklist(this)">
+        <input type="checkbox"><span class="checklist-box"></span><span>좋아하는 노래를 최소 2곡 이상 입력했다</span>
+      </label>
+      <label class="checklist-item" onclick="toggleChecklist(this)">
+        <input type="checkbox"><span class="checklist-box"></span><span>각 곡마다 좋아하는 이유를 적었다</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="mode-tabs">
+    <div class="mode-tab active" data-mode="songs">🎵 레퍼런스 노래</div>
+    <div class="mode-tab" data-mode="style">🎛️ 노래풍 직접 설정</div>
+    <div class="mode-tab" data-mode="lyrics">✍️ 직접 가사</div>
+    <div class="mode-tab" data-mode="file">📎 파일 첨부</div>
+  </div>
+
+  <!-- 모드 A: 레퍼런스 -->
+  <div class="mode-panel active" id="mode-songs">
+    <div class="card">
+      <div class="card-title">🎵 레퍼런스 노래 목록</div>
+      <div class="notice">
+        <strong>목적:</strong> 특정 곡을 모방하는 게 아니라, 공통 감성과 음악적 특징만 추출합니다.<br>
+        가수명·곡명은 분석용이며 <strong>최종 Gemini 프롬프트에서 자동 제거</strong>됩니다.
+      </div>
+      <div id="songList"></div>
+      <button class="btn btn-secondary" onclick="addSong()" style="margin-top:4px">+ 노래 추가</button>
+    </div>
+  </div>
+
+  <!-- 모드 B: 노래풍 직접 -->
+  <div class="mode-panel" id="mode-style">
+    <div class="card">
+      <div class="card-title">🎛️ 원하는 노래풍 직접 설명</div>
+      <div class="form-group">
+        <label>원하는 음악 스타일을 자유롭게 써주세요</label>
+        <textarea id="styleText" rows="6" placeholder="예) 잔잔하고 슬픈 한국어 팝 발라드. 피아노로 시작하고 2절부터 스트링과 드럼이 들어오며, 마지막 후렴에서 감정이 크게 터지는 곡. 보컬은 담담하지만 끝에서 울컥하는 여성 보컬."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- 모드 C: 직접 가사 -->
+  <div class="mode-panel" id="mode-lyrics">
+    <div class="card">
+      <div class="card-title">✍️ 직접 작성한 가사</div>
+      <div class="notice">가사 원문을 그대로 유지하거나, AI에게 노래용으로 다듬어달라고 요청할 수 있습니다.</div>
+      <div class="form-group">
+        <label>가사 입력</label>
+        <textarea id="directLyrics" rows="10" placeholder="직접 쓴 가사를 붙여넣으세요. Verse, Chorus 등 파트 구분이 있다면 표시해도 좋습니다."></textarea>
+      </div>
+      <div class="form-group">
+        <label>가사 처리 방식</label>
+        <div class="check-group" id="lyricsModeGroup">
+          <label class="check-pill"><input type="radio" name="lyricsMode" value="원문 유지" checked> 원문 유지</label>
+          <label class="check-pill"><input type="radio" name="lyricsMode" value="노래용 다듬기"> 노래용 다듬기</label>
+          <label class="check-pill"><input type="radio" name="lyricsMode" value="파트별 배치"> 파트별 배치</label>
+          <label class="check-pill"><input type="radio" name="lyricsMode" value="전면 편곡"> 전면 편곡</label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 모드 D: 파일 + 사진 -->
+  <div class="mode-panel" id="mode-file">
+    <!-- 사진 업로드 서브탭 -->
+    <div class="mode-tabs" style="margin-bottom:14px">
+      <div class="mode-tab active" data-submode="text-file" id="subTab-file">📄 텍스트 파일</div>
+      <div class="mode-tab" data-submode="photo" id="subTab-photo">📸 사진 속 글자 읽기</div>
+    </div>
+
+    <!-- 서브탭 A: 텍스트 파일 -->
+    <div id="subPanel-file" class="subpanel-active">
+      <div class="card">
+        <div class="card-title">📎 텍스트 파일 읽기</div>
+        <div class="notice">.txt / .md / .json / .csv 파일을 불러와 텍스트로 변환합니다.</div>
+        <div class="form-group">
+          <label>파일 선택</label>
+          <input type="file" id="fileInput" accept=".txt,.md,.json,.csv" style="color:var(--text2);padding:6px 0;">
+        </div>
+        <div class="form-group">
+          <label>파일 내용 (편집 가능)</label>
+          <textarea id="fileContent" rows="10" placeholder="파일을 선택하면 내용이 여기 표시됩니다."></textarea>
+        </div>
+        <div class="form-group">
+          <label>이 텍스트를 다음으로 사용</label>
+          <div class="check-group" id="fileUsage">
+            <label class="check-pill"><input type="radio" name="fileUse" value="가사" checked> 가사로 사용</label>
+            <label class="check-pill"><input type="radio" name="fileUse" value="콘셉트"> 콘셉트로 사용</label>
+            <label class="check-pill"><input type="radio" name="fileUse" value="참고자료"> 참고자료로 사용</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 서브탭 B: 사진 속 글자 읽기 -->
+    <div id="subPanel-photo" style="display:none">
+      <div class="card">
+        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+          <span>📸 사진 속 글자 읽기 → 가사 생성</span>
+          <span id="ocrModeBadge" class="mode-badge">● Claude API</span>
+        </div>
+        <div class="notice">
+          <strong>사용법:</strong> 손글씨 메모, 일기장, 시, 노트 사진을 여러 장 올리면<br>
+          Claude가 글자를 읽어 가사 초안을 자동 생성합니다.<br>
+          <strong>Claude.ai에서 실행 시</strong> Claude Vision으로 고정밀 인식 ·
+          <strong>로컬 실행 시</strong> Tesseract.js(브라우저 OCR) 자동 전환
+        </div>
+
+        <!-- 드래그앤드롭 업로드 영역 -->
+        <div class="photo-drop-zone" id="photoDropZone">
+          <input type="file" id="photoInput" accept="image/*" multiple
+            onchange="handlePhotoFiles(this.files)">
+          <div class="pdz-icon">🖼️</div>
+          <div class="pdz-title">사진을 여기에 끌어놓거나 클릭해서 선택</div>
+          <div class="pdz-sub">여러 장 동시 선택 가능 · JPG / PNG / WEBP · 최대 10장</div>
+        </div>
+
+        <!-- 미리보기 그리드 -->
+        <div class="photo-preview-grid" id="photoPreviewGrid"></div>
+
+        <!-- ★ 이미지 전처리 패널 ★ -->
+        <div class="preproc-panel" id="preprocPanel" style="display:none">
+          <div class="preproc-title">🔬 이미지 전처리 설정 <span style="font-weight:400;color:var(--text3)">(손글씨 인식률 향상)</span></div>
+
+          <div class="preproc-slider-row">
+            <span>흑백 변환</span>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--text2)">
+              <input type="checkbox" id="preprocGray" checked onchange="updatePreprocPreview()" style="width:auto;accent-color:var(--accent)"> 활성화
+            </label>
+          </div>
+
+          <div class="preproc-slider-row">
+            <span>대비 강화</span>
+            <input type="range" id="preprocContrast" min="100" max="300" value="160" step="5"
+              oninput="document.getElementById('preprocContrastVal').textContent=this.value+'%'; updatePreprocPreview()">
+            <span class="preproc-val" id="preprocContrastVal">160%</span>
+          </div>
+
+          <div class="preproc-slider-row">
+            <span>밝기 보정</span>
+            <input type="range" id="preprocBright" min="-60" max="60" value="0" step="5"
+              oninput="document.getElementById('preprocBrightVal').textContent=(this.value>0?'+':'')+this.value; updatePreprocPreview()">
+            <span class="preproc-val" id="preprocBrightVal">0</span>
+          </div>
+
+          <div class="preproc-slider-row">
+            <span>이진화 임계값</span>
+            <input type="range" id="preprocThresh" min="0" max="255" value="0" step="5"
+              oninput="document.getElementById('preprocThreshVal').textContent=this.value==0?'끄기':this.value; updatePreprocPreview()">
+            <span class="preproc-val" id="preprocThreshVal">끄기</span>
+          </div>
+
+          <!-- 전처리 전/후 미리보기 -->
+          <div class="preproc-preview-grid" id="preprocPreviewGrid" style="display:none">
+            <div class="preproc-preview-item">
+              <div class="preproc-preview-label">원본</div>
+              <img id="preprocOrigImg" src="" alt="원본">
+            </div>
+            <div class="preproc-preview-item">
+              <div class="preproc-preview-label">전처리 후</div>
+              <img id="preprocResultImg" src="" alt="전처리 후">
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-top:6px">첫 번째 사진 기준 미리보기</div>
+        </div>
+
+        <!-- 추출 진행 표시 -->
+        <div class="photo-extract-progress" id="photoProgress">
+          <span id="photoProgressText">글자를 읽는 중…</span>
+          <div class="pep-bar-track"><div class="pep-bar-fill" id="photoProgressBar" style="width:0%"></div></div>
+        </div>
+
+        <!-- ★ 추출된 원문 (수동 편집 UI) ★ -->
+        <div class="extract-edit-box" id="extractEditBox" style="display:none">
+          <div class="extract-edit-header">
+            <span class="extract-edit-label">📖 추출된 원문 — 직접 수정 가능</span>
+            <div style="display:flex;gap:8px;align-items:center">
+              <span class="copy-msg" id="copyExtracted"></span>
+              <button class="btn btn-ghost" onclick="copyText('photoExtractedText','copyExtracted')">📋 복사</button>
+              <button class="btn btn-ghost" onclick="document.getElementById('photoExtractedText').value=''; document.getElementById('extractEditBox').style.display='none'">🗑️ 지우기</button>
+            </div>
+          </div>
+          <textarea id="photoExtractedText" rows="8" placeholder="사진에서 추출된 글자가 여기 표시됩니다. 틀린 부분은 직접 수정하세요."></textarea>
+          <div style="padding:8px 14px;background:var(--bg3);border-top:1px solid var(--border);font-size:11px;color:var(--text3);display:flex;align-items:center;gap:10px">
+            <span id="extractCharCount">0자</span>
+            <span>·</span>
+            <span>수정 후 아래 버튼으로 가사 생성 가능</span>
+          </div>
+        </div>
+
+        <!-- 가사 생성 옵션 -->
+        <div class="form-group" style="margin-top:14px">
+          <label>추출된 글을 어떻게 처리할까요?</label>
+          <div class="check-group" id="photoLyricsMode">
+            <label class="check-pill"><input type="radio" name="photoMode" value="가사로 정리" checked> 🎵 노래 가사로 정리</label>
+            <label class="check-pill"><input type="radio" name="photoMode" value="가사 초안 생성"> ✨ 가사 초안 새로 생성</label>
+            <label class="check-pill"><input type="radio" name="photoMode" value="원문 그대로"> 📝 원문 그대로 사용</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>추가 지시 <span style="font-size:11px;color:var(--text3)">(선택)</span></label>
+          <textarea id="photoExtraInstruction" rows="2" placeholder="예: 일기체 글을 1절/2절/후렴 구조로 나눠서 정리해줘. 감정을 유지하면서 운율을 살려줘."></textarea>
+        </div>
+
+        <!-- 버튼 행 -->
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="extractAndGenerateLyrics()" id="photoExtractBtn">
+            🔍 글자 읽어서 가사 생성
+          </button>
+          <button class="btn btn-blue" onclick="extractOnly()" id="photoExtractOnlyBtn">
+            📖 글자만 추출
+          </button>
+          <button class="btn btn-ghost" onclick="clearPhotos()">🗑️ 초기화</button>
+          <span class="copy-msg" id="photoExtractMsg"></span>
+        </div>
+
+        <!-- 인라인 안내 배너 (alert 대체) -->
+        <div class="photo-info-banner" id="photoInfoBanner">
+          <span class="pib-icon" id="photoInfoIcon">ℹ️</span>
+          <span class="pib-msg" id="photoInfoMsg"></span>
+          <button class="pib-close" onclick="document.getElementById('photoInfoBanner').className='photo-info-banner'">✕</button>
+        </div>
+
+        <div style="font-size:11px;color:var(--text3);margin-top:6px">
+          💡 <strong>글자만 추출</strong>로 먼저 원문을 확인·수정한 뒤 가사를 생성하면 더 정확합니다.
+        </div>
+
+        <!-- 생성된 가사 결과 -->
+        <div id="photoLyricsResultArea" style="display:none;margin-top:14px">
+          <div class="extract-edit-box">
+            <div class="extract-edit-header">
+              <span class="extract-edit-label">✅ 생성된 가사 — 편집 후 반영 가능</span>
+              <div style="display:flex;gap:8px;align-items:center">
+                <span class="copy-msg" id="copyPhotoLyricsRes"></span>
+                <button class="btn btn-ghost" onclick="copyText('photoLyricsResult','copyPhotoLyricsRes')">📋 복사</button>
+              </div>
+            </div>
+            <textarea id="photoLyricsResult" rows="12" placeholder="가사가 여기 표시됩니다."></textarea>
+          </div>
+          <div class="btn-row" style="margin-top:10px">
+            <button class="btn btn-green" onclick="applyPhotoLyricsToMain()">✅ 가사 생성 단계에 반영</button>
+            <button class="btn btn-secondary" onclick="copyPhotoLyrics()">📋 복사</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="goTo('p2')">다음 단계 →</button>
+    <button class="btn btn-secondary" onclick="goTo('p0')">← 이전</button>
+  </div>
+</div>
+
+<!-- ─── P2: 곡 방향 설정 ─── -->
+<div class="page" id="p2">
+  <div class="page-header">
+    <div>
+      <div class="page-title">곡 방향 설정</div>
+      <div class="page-desc">원하는 음악적 방향을 세부적으로 설정합니다.</div>
+    </div>
+    <span class="page-step-badge">STEP ②</span>
+  </div>
+
+  <!-- 초보자 체크리스트 -->
+  <div class="beginner-only">
+    <div class="step-checklist">
+      <div class="step-checklist-title">✅ 이 단계 완료 기준</div>
+      <label class="checklist-item" onclick="toggleChecklist(this)">
+        <input type="checkbox"><span class="checklist-box"></span><span>원하는 정서(느낌)를 1개 이상 선택했다</span>
+      </label>
+      <label class="checklist-item" onclick="toggleChecklist(this)">
+        <input type="checkbox"><span class="checklist-box"></span><span>장르와 보컬 성별을 선택했다</span>
+      </label>
+      <label class="checklist-item" onclick="toggleChecklist(this)">
+        <input type="checkbox"><span class="checklist-box"></span><span>가사 주제를 1개 이상 선택했다</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🌊 정서 (복수 선택)</div>
+    <div class="check-group" id="moodGroup">
+      <label class="check-pill"><input type="checkbox" value="잔잔한">잔잔한</label>
+      <label class="check-pill"><input type="checkbox" value="슬픈">슬픈</label>
+      <label class="check-pill"><input type="checkbox" value="따뜻한">따뜻한</label>
+      <label class="check-pill"><input type="checkbox" value="희망적인">희망적인</label>
+      <label class="check-pill"><input type="checkbox" value="벅찬">벅찬</label>
+      <label class="check-pill"><input type="checkbox" value="쓸쓸한">쓸쓸한</label>
+      <label class="check-pill"><input type="checkbox" value="영화 같은">영화 같은</label>
+      <label class="check-pill"><input type="checkbox" value="담담한">담담한</label>
+      <label class="check-pill"><input type="checkbox" value="후반부 고조형">후반부 고조형</label>
+      <label class="check-pill"><input type="checkbox" value="서정적">서정적</label>
+      <label class="check-pill"><input type="checkbox" value="그리운">그리운</label>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🎸 음악 설정</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>장르</label>
+        <select id="genre" onchange="toggleGenreCustom(this.value)">
+          <option>감성 팝 발라드</option>
+          <option>팝 록 발라드</option>
+          <option>피아노 발라드</option>
+          <option>어쿠스틱 발라드</option>
+          <option>드림팝 발라드</option>
+          <option>인디 팝</option>
+          <option>포크</option>
+          <option>직접 입력</option>
+        </select>
+        <div id="genreCustomWrap">
+          <input type="text" id="genreCustom" placeholder="장르를 직접 입력하세요 (예: 재즈 발라드)">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>보컬</label>
+        <select id="vocal">
+          <option>여성</option>
+          <option>남성</option>
+          <option>혼성</option>
+          <option>상관없음</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>BPM <span class="tooltip-wrap"><i class="tip-icon">?</i><span class="tip-body">노래의 빠르기입니다. 숫자가 낮을수록 느립니다.<br>발라드는 보통 70~80 사이입니다.<div class="tip-arrow"></div></span></span></label>
+        <select id="bpm">
+          <option>자동 추천</option>
+          <option>60~70 (아주 느린)</option>
+          <option>70~76 (느린 발라드)</option>
+          <option>76~82 (중간 발라드)</option>
+          <option>82~90 (약간 빠른)</option>
+          <option>90~100</option>
+          <option>직접 입력</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>BPM 직접 입력 (위에서 "직접 입력" 선택 시)</label>
+        <input type="text" id="bpmCustom" placeholder="예: 74">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>악기 구성</label>
+      <div class="check-group" id="instrGroup">
+        <label class="check-pill"><input type="checkbox" value="피아노">🎹 피아노</label>
+        <label class="check-pill"><input type="checkbox" value="어쿠스틱 기타">🎸 어쿠스틱 기타</label>
+        <label class="check-pill"><input type="checkbox" value="스트링">🎻 스트링</label>
+        <label class="check-pill"><input type="checkbox" value="드럼">🥁 드럼</label>
+        <label class="check-pill"><input type="checkbox" value="신스">🎛️ 신스</label>
+        <label class="check-pill"><input type="checkbox" value="베이스">🎸 베이스</label>
+        <label class="check-pill"><input type="checkbox" value="일렉기타">⚡ 일렉기타</label>
+        <label class="check-pill"><input type="checkbox" value="첼로">🎻 첼로</label>
+        <label class="check-pill"><input type="checkbox" value="플루트">🎵 플루트</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>가사 주제</label>
+      <div class="check-group" id="themeGroup">
+        <label class="check-pill"><input type="checkbox" value="이별">이별</label>
+        <label class="check-pill"><input type="checkbox" value="회상">회상</label>
+        <label class="check-pill"><input type="checkbox" value="재출발">재출발</label>
+        <label class="check-pill"><input type="checkbox" value="졸업">졸업</label>
+        <label class="check-pill"><input type="checkbox" value="가족">가족</label>
+        <label class="check-pill"><input type="checkbox" value="인생 후반전">인생 후반전</label>
+        <label class="check-pill"><input type="checkbox" value="진로">진로</label>
+        <label class="check-pill"><input type="checkbox" value="위로">위로</label>
+        <label class="check-pill"><input type="checkbox" value="그리움">그리움</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>추가 지시사항</label>
+      <textarea id="extraDirections" placeholder="예: 1절은 조용히 시작하고 마지막 후렴에서 폭발, 후렴의 첫 소절은 기억에 남게"></textarea>
+    </div>
+  </div>
+
+  <!-- 보컬 아이덴티티 -->
+  <div class="card">
+    <div class="card-title">🎤 보컬 아이덴티티 <span style="font-size:11px;font-weight:400;color:var(--text3)">(선택) — Gemini 프롬프트에 자동 반영</span></div>
+    <div class="form-group">
+      <label>보컬 특성 (복수 선택)</label>
+      <div class="vci-group" id="vocalIdentityGroup">
+        <label class="vci-pill"><input type="checkbox" value="natural everyday voice">🧍 자연스러운 일반인 보컬</label>
+        <label class="vci-pill"><input type="checkbox" value="warm low-mid register">🌊 따뜻한 중저음</label>
+        <label class="vci-pill"><input type="checkbox" value="slightly husky">🌫️ 약간 허스키</label>
+        <label class="vci-pill"><input type="checkbox" value="understated calm delivery">😶 담담한 전달</label>
+        <label class="vci-pill"><input type="checkbox" value="spoken-song style">💬 말하듯 부르는</label>
+        <label class="vci-pill"><input type="checkbox" value="minimal vibrato">🔇 비브라토 적게</label>
+        <label class="vci-pill"><input type="checkbox" value="restrained ornamentation">✨ 기교 적게</label>
+        <label class="vci-pill"><input type="checkbox" value="emotional peak only at final chorus">🔥 마지막 후렴에서만 감정 고조</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>내 목소리 느낌 자유 설명 <span style="font-size:11px;color:var(--text3)">(선택)</span></label>
+      <textarea id="vocalFreeDesc" rows="2" placeholder="예: 숨소리가 느껴질 듯 가깝고 친밀한 보컬. 감정을 억누르는 듯 부르다가 마지막에만 터지는 느낌."></textarea>
+    </div>
+  </div>
+
+  <!-- Negative Prompt -->
+  <div class="card">
+    <div class="card-title">🚫 Negative Prompt <span style="font-size:11px;font-weight:400;color:var(--text3)">(선택) — 피하고 싶은 요소</span></div>
+    <div class="form-group">
+      <label>피하고 싶은 요소 (복수 선택)</label>
+      <div class="vci-group" id="negPromptGroup">
+        <label class="neg-pill"><input type="checkbox" value="no excessive high notes">🚫 과한 고음</label>
+        <label class="neg-pill"><input type="checkbox" value="no fast beat or hip-hop rhythm">🚫 빠른 비트</label>
+        <label class="neg-pill"><input type="checkbox" value="no idol-style vocal performance">🚫 아이돌식 보컬</label>
+        <label class="neg-pill"><input type="checkbox" value="no heavy autotune or pitch correction">🚫 과한 오토튠</label>
+        <label class="neg-pill"><input type="checkbox" value="no muffled or unclear Korean pronunciation">🚫 발음 뭉개짐</label>
+        <label class="neg-pill"><input type="checkbox" value="no overly bright or cheerful tone">🚫 너무 밝은 분위기</label>
+        <label class="neg-pill"><input type="checkbox" value="no dramatic over-singing or melisma">🚫 드라마틱 과잉 창법</label>
+        <label class="neg-pill"><input type="checkbox" value="no electronic or EDM elements">🚫 전자음/EDM 요소</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>추가로 피하고 싶은 요소 <span style="font-size:11px;color:var(--text3)">(선택)</span></label>
+      <textarea id="negFreeText" rows="2" placeholder="예: 기존 유명 발라드 멜로디 패턴, 특정 아티스트 창법, 8비트 느낌의 드럼 패턴"></textarea>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="goTo('p3')">다음 단계 →</button>
+    <button class="btn btn-secondary" onclick="goTo('p1')">← 이전</button>
+  </div>
+</div>
+
+<!-- ─── P3: DNA 분석 ─── -->
+<div class="page" id="p3">
+  <div class="page-header">
+    <div>
+      <div class="page-title">음악 DNA 분석</div>
+      <div class="page-desc">생성된 프롬프트를 복사 → Claude.ai 또는 ChatGPT에 붙여넣기 → 결과를 아래에 입력</div>
+    </div>
+    <span class="page-step-badge">STEP ③</span>
+  </div>
+
+  <!-- 초보자 안내 -->
+  <div class="beginner-only">
+    <div class="notice" style="margin-bottom:12px">
+      <strong>📋 하는 방법:</strong> ① 아래 버튼으로 프롬프트 생성 → ② "복사" 클릭 → ③ Claude.ai(claude.ai)에 붙여넣기 → ④ AI 답변을 아래 "결과 입력"에 붙여넣기
+    </div>
+    <div class="step-checklist">
+      <div class="step-checklist-title">✅ 이 단계 완료 기준</div>
+      <label class="checklist-item" onclick="toggleChecklist(this)">
+        <input type="checkbox"><span class="checklist-box"></span><span>프롬프트를 생성하고 복사했다</span>
+      </label>
+      <label class="checklist-item" onclick="toggleChecklist(this)">
+        <input type="checkbox"><span class="checklist-box"></span><span>Claude/GPT에 붙여넣고 결과를 받았다</span>
+      </label>
+      <label class="checklist-item" onclick="toggleChecklist(this)">
+        <input type="checkbox"><span class="checklist-box"></span><span>결과를 아래 입력칸에 붙여넣었다</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="step-generate">
+    <div class="step-generate-label">① 프롬프트 생성 → ② Claude/GPT에 복사·붙여넣기 → ③ 결과를 아래 입력</div>
+    <button class="btn btn-primary" onclick="generateDNAPrompt()">🧬 DNA 분석 프롬프트 생성</button>
+  </div>
+
+  <div class="prompt-block" id="dnaPromptBlock" style="display:none">
+    <div class="prompt-block-header">
+      <span class="prompt-block-title">Claude / GPT 입력 프롬프트</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="copy-msg" id="copyDNA">✓ 복사됨</span>
+        <button class="btn btn-ghost" onclick="copyText('dnaPromptTA','copyDNA')">📋 복사</button>
+      </div>
+    </div>
+    <textarea id="dnaPromptTA"></textarea>
+  </div>
+
+  <hr class="divider">
+
+  <div class="card">
+    <div class="card-title">📝 분석 결과 입력</div>
+    <div class="result-box">
+      <div class="result-box-header">
+        <span class="result-box-label">DNA 분석 결과 — 수정 가능</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="copy-msg" id="copyDNARes">✓ 복사됨</span>
+          <button class="btn btn-ghost" onclick="copyText('dnaResult','copyDNARes')">📋 복사</button>
+        </div>
+      </div>
+      <textarea id="dnaResult" placeholder="Claude에서 받은 DNA 분석 결과를 여기에 붙여넣거나 직접 작성하세요.&#10;&#10;예시:&#10;◆ 공통 정서: 담담한 슬픔, 절제된 그리움&#10;◆ 추천 장르: 한국어 감성 팝 발라드&#10;◆ BPM 범위: 74~78&#10;◆ 악기: 피아노 + 어쿠스틱 기타 + 스트링 + 절제된 드럼&#10;◆ 보컬 톤: 담담하고 서정적, 마지막 후렴에서 고조&#10;◆ 피해야 할 요소: 특정 아티스트 창법 모방, 기존 멜로디 유사성"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-green" onclick="saveVersion('dna','dnaResult',this)">💾 버전 저장</button>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="goTo('p4')">다음 단계 →</button>
+    <button class="btn btn-secondary" onclick="goTo('p2')">← 이전</button>
+  </div>
+</div>
+
+<!-- ─── P4: 콘셉트 ─── -->
+<div class="page" id="p4">
+  <div class="page-header">
+    <div>
+      <div class="page-title">곡 콘셉트 생성</div>
+      <div class="page-desc">제목 후보, 핵심 메시지, 감정선을 정합니다.</div>
+    </div>
+    <span class="page-step-badge">STEP ④</span>
+  </div>
+
+  <div class="beginner-only">
+    <div class="step-checklist">
+      <div class="step-checklist-title">✅ 이 단계 완료 기준</div>
+      <label class="checklist-item" onclick="toggleChecklist(this)">
+        <input type="checkbox"><span class="checklist-box"></span><span>프롬프트를 생성하고 Claude/GPT에서 콘셉트를 받았다</span>
+      </label>
+      <label class="checklist-item" onclick="toggleChecklist(this)">
+        <input type="checkbox"><span class="checklist-box"></span><span>제안된 제목 중 마음에 드는 것을 결과칸에 남겼다</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="step-generate">
+    <div class="step-generate-label">DNA 분석 결과가 입력되어 있을수록 더 정확한 콘셉트가 생성됩니다.</div>
+    <button class="btn btn-primary" onclick="generateConceptPrompt()">💡 콘셉트 프롬프트 생성</button>
+  </div>
+
+  <div class="prompt-block" id="conceptPromptBlock" style="display:none">
+    <div class="prompt-block-header">
+      <span class="prompt-block-title">Claude / GPT 입력 프롬프트</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="copy-msg" id="copyConcept">✓ 복사됨</span>
+        <button class="btn btn-ghost" onclick="copyText('conceptPromptTA','copyConcept')">📋 복사</button>
+      </div>
+    </div>
+    <textarea id="conceptPromptTA"></textarea>
+  </div>
+
+  <hr class="divider">
+
+  <div class="card">
+    <div class="card-title">📝 콘셉트 결과</div>
+    <div class="result-box">
+      <div class="result-box-header">
+        <span class="result-box-label">콘셉트 — 수정 가능</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="copy-msg" id="copyConceptRes">✓ 복사됨</span>
+          <button class="btn btn-ghost" onclick="copyText('conceptResult','copyConceptRes')">📋 복사</button>
+        </div>
+      </div>
+      <textarea id="conceptResult" placeholder="콘셉트 결과를 붙여넣거나 직접 작성하세요.&#10;&#10;예시:&#10;◆ 제목 후보: 접어둔 계절 / 그 여름 끝에 / 아직 거기 있니&#10;◆ 최종 추천: 접어둔 계절&#10;◆ 한 줄 콘셉트: 지나간 사람을 그리워하면서도 앞으로 나아가는 이야기&#10;◆ 핵심 메시지: 그리움은 인정하되, 결국 나는 걷는다&#10;◆ 화자: 이별 후 시간이 흘러 담담해진 사람&#10;◆ 감정선: 담담 → 그리움 → 고조 → 수용"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-green" onclick="saveVersion('concept','conceptResult',this)">💾 버전 저장</button>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="goTo('p5')">다음 단계 →</button>
+    <button class="btn btn-secondary" onclick="goTo('p3')">← 이전</button>
+  </div>
+</div>
+
+<!-- ─── P5: 구조 설계 ─── -->
+<div class="page" id="p5">
+  <div class="page-header">
+    <div>
+      <div class="page-title">곡 구조 설계</div>
+      <div class="page-desc">파트별 구조표와 Gemini용 블록 분할 계획을 만듭니다.</div>
+    </div>
+    <span class="page-step-badge">STEP ⑤</span>
+  </div>
+
+  <div class="beginner-only">
+    <div class="notice" style="margin-bottom:12px">
+      <strong>음악 구조 용어 안내:</strong>
+      <span class="tooltip-wrap"><strong style="color:var(--accent);cursor:help">Verse</strong><span class="tip-body">이야기의 시작 부분. 1절, 2절처럼 가사가 바뀌는 구간입니다.<div class="tip-arrow"></div></span></span> →
+      <span class="tooltip-wrap"><strong style="color:var(--accent);cursor:help">Chorus</strong><span class="tip-body">후렴. 가장 기억에 남는 반복되는 부분입니다.<div class="tip-arrow"></div></span></span> →
+      <span class="tooltip-wrap"><strong style="color:var(--accent);cursor:help">Bridge</strong><span class="tip-body">마지막 후렴 전 분위기를 전환하는 구간입니다.<div class="tip-arrow"></div></span></span> →
+      <span class="tooltip-wrap"><strong style="color:var(--accent);cursor:help">Outro</strong><span class="tip-body">노래가 끝나는 여운 부분입니다.<div class="tip-arrow"></div></span></span>
+    </div>
+    <div class="step-checklist">
+      <div class="step-checklist-title">✅ 이 단계 완료 기준</div>
+      <label class="checklist-item" onclick="toggleChecklist(this)">
+        <input type="checkbox"><span class="checklist-box"></span><span>구조 프롬프트를 생성하고 결과를 받았다</span>
+      </label>
+      <label class="checklist-item" onclick="toggleChecklist(this)">
+        <input type="checkbox"><span class="checklist-box"></span><span>결과를 아래 입력칸에 붙여넣었다</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="step-generate">
+    <div class="step-generate-label">생성 방식 선택</div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px" id="structOptGroup">
+      <label class="check-pill selected" id="structOpt1" onclick="setStructOpt(1)">✓ 큰 블록 3개</label>
+      <label class="check-pill" id="structOpt2" onclick="setStructOpt(2)">30초 10블록</label>
+      <label class="check-pill" id="structOpt3" onclick="setStructOpt(3)">둘 다 생성</label>
+    </div>
+    <button class="btn btn-primary" onclick="generateStructurePrompt()">🏗️ 구조 설계 프롬프트 생성</button>
+  </div>
+
+  <div class="prompt-block" id="structPromptBlock" style="display:none">
+    <div class="prompt-block-header">
+      <span class="prompt-block-title">Claude / GPT 입력 프롬프트</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="copy-msg" id="copyStruct">✓ 복사됨</span>
+        <button class="btn btn-ghost" onclick="copyText('structPromptTA','copyStruct')">📋 복사</button>
+      </div>
+    </div>
+    <textarea id="structPromptTA"></textarea>
+  </div>
+
+  <hr class="divider">
+
+  <div class="card">
+    <div class="card-title">📝 구조 설계 결과</div>
+    <div class="result-box">
+      <div class="result-box-header">
+        <span class="result-box-label">구조 설계 — 수정 가능</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="copy-msg" id="copyStructRes">✓ 복사됨</span>
+          <button class="btn btn-ghost" onclick="copyText('structureResult','copyStructRes')">📋 복사</button>
+        </div>
+      </div>
+      <textarea id="structureResult" placeholder="구조 결과를 붙여넣거나 직접 작성하세요.&#10;&#10;예시:&#10;◆ Intro (0:00-0:20): 피아노 솔로&#10;◆ Verse 1 (0:20-0:55): 보컬 등장, 담담한 톤&#10;◆ Chorus 1 (0:55-1:25): 스트링 가세, 감정 고조&#10;◆ Verse 2 (1:25-2:00): 드럼 추가&#10;◆ Bridge (2:00-2:30): 핵심 가사&#10;◆ Final Chorus (2:30-3:20): 모든 악기, 감정 폭발&#10;◆ Outro (3:20-3:45): 피아노로 회귀"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-green" onclick="saveVersion('structure','structureResult',this)">💾 버전 저장</button>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="goTo('p6')">다음 단계 →</button>
+    <button class="btn btn-secondary" onclick="goTo('p4')">← 이전</button>
+  </div>
+</div>
+
+<!-- ─── P6: 가사 생성 ─── -->
+<div class="page" id="p6">
+  <div class="page-header">
+    <div>
+      <div class="page-title">가사 생성 / 편곡</div>
+      <div class="page-desc">가사를 AI에게 맡기거나, 직접 입력한 가사를 편곡합니다.</div>
+    </div>
+    <span class="page-step-badge">STEP ⑥</span>
+  </div>
+
+  <div class="mode-tabs" id="lyricsTabs">
+    <div class="mode-tab active" data-ltab="auto">🤖 AI 자동 생성</div>
+    <div class="mode-tab" data-ltab="arrange">✍️ 직접 가사 편곡</div>
+  </div>
+
+  <div class="mode-panel active" id="ltab-auto">
+    <div class="step-generate">
+      <div class="step-generate-label">AI 자동 가사 생성 프롬프트</div>
+      <div class="form-group">
+        <label>추가 가사 방향 (선택)</label>
+        <input type="text" id="lyricsExtra" placeholder="예: 비 오는 날 빈 카페, 창가에 앉아 회상하는 장면으로 시작">
+      </div>
+      <button class="btn btn-primary" onclick="generateLyricsPrompt('auto')">🎵 가사 생성 프롬프트 생성</button>
+    </div>
+  </div>
+
+  <div class="mode-panel" id="ltab-arrange">
+    <div class="step-generate">
+      <div class="step-generate-label">직접 가사 편곡 프롬프트</div>
+      <div class="form-group">
+        <label>편곡 방식</label>
+        <select id="arrangeMode">
+          <option>파트별 배치 (원문 유지)</option>
+          <option>노래용 리듬감 추가</option>
+          <option>전면 재작성 (주제만 유지)</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="generateLyricsPrompt('arrange')">🎵 가사 편곡 프롬프트 생성</button>
+    </div>
+  </div>
+
+  <div class="prompt-block" id="lyricsPromptBlock" style="display:none">
+    <div class="prompt-block-header">
+      <span class="prompt-block-title">Claude / GPT 입력 프롬프트</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="copy-msg" id="copyLyrics">✓ 복사됨</span>
+        <button class="btn btn-ghost" onclick="copyText('lyricsPromptTA','copyLyrics')">📋 복사</button>
+      </div>
+    </div>
+    <textarea id="lyricsPromptTA"></textarea>
+  </div>
+
+  <hr class="divider">
+
+  <div class="card">
+    <div class="card-title">📝 가사 결과</div>
+    <div class="result-box">
+      <div class="result-box-header">
+        <span class="result-box-label">가사 — 수정 가능</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="copy-msg" id="copyLyricsRes">✓ 복사됨</span>
+          <button class="btn btn-ghost" onclick="copyText('lyricsResult','copyLyricsRes')">📋 복사</button>
+        </div>
+      </div>
+      <textarea id="lyricsResult" placeholder="가사를 여기에 붙여넣거나 직접 작성하세요."></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-green" onclick="saveVersion('lyrics','lyricsResult',this)">💾 버전 저장</button>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="goTo('p6b')">다음: 가사 보정 →</button>
+    <button class="btn btn-secondary" onclick="goTo('p5')">← 이전</button>
+  </div>
+</div>
+
+<!-- ─── P6b: 가사 보정 (신규) ─── -->
+<div class="page" id="p6b">
+  <div class="page-header">
+    <div>
+      <div class="page-title">가사 보정</div>
+      <div class="page-desc">완성된 가사를 노래에 더 맞게 다듬는 단계입니다. Claude에게 보정을 요청합니다.</div>
+    </div>
+    <span class="page-step-badge">STEP ⑦</span>
+  </div>
+
+  <div class="step-generate">
+    <div class="step-generate-label">보정 방향을 선택하고 프롬프트를 생성하세요</div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label>보정 유형 (복수 선택 가능)</label>
+      <div class="check-group" id="refinementGroup">
+        <label class="check-pill"><input type="checkbox" value="발음 자연스럽게">발음 자연스럽게</label>
+        <label class="check-pill"><input type="checkbox" value="리듬감 개선">리듬감 개선</label>
+        <label class="check-pill"><input type="checkbox" value="후렴 강화">후렴 강화</label>
+        <label class="check-pill"><input type="checkbox" value="감정선 일관성">감정선 일관성</label>
+        <label class="check-pill"><input type="checkbox" value="클리셰 제거">클리셰 제거</label>
+        <label class="check-pill"><input type="checkbox" value="파트 길이 조절">파트 길이 조절</label>
+        <label class="check-pill"><input type="checkbox" value="전체 교정">전체 교정</label>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label>추가 보정 지시</label>
+      <input type="text" id="refinementExtra" placeholder="예: 후렴 2번 반복, Outro를 피아노 반주만으로 끝나게">
+    </div>
+    <button class="btn btn-primary" onclick="generateRefinementPrompt()">✨ 가사 보정 프롬프트 생성</button>
+  </div>
+
+  <div class="prompt-block" id="refinementPromptBlock" style="display:none">
+    <div class="prompt-block-header">
+      <span class="prompt-block-title">Claude 가사 보정 프롬프트</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="copy-msg" id="copyRefinement">✓ 복사됨</span>
+        <button class="btn btn-ghost" onclick="copyText('refinementPromptTA','copyRefinement')">📋 복사</button>
+      </div>
+    </div>
+    <textarea id="refinementPromptTA"></textarea>
+  </div>
+
+  <hr class="divider">
+
+  <div class="card">
+    <div class="card-title">📝 보정된 가사 결과</div>
+    <div class="result-box">
+      <div class="result-box-header">
+        <span class="result-box-label">보정 가사 — 수정 가능</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="copy-msg" id="copyRefinedRes">✓ 복사됨</span>
+          <button class="btn btn-ghost" onclick="copyText('refinedLyricsResult','copyRefinedRes')">📋 복사</button>
+        </div>
+      </div>
+      <textarea id="refinedLyricsResult" placeholder="보정된 가사를 여기에 붙여넣으세요."></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-green" onclick="saveVersion('refinedLyrics','refinedLyricsResult',this)">💾 버전 저장</button>
+      <button class="btn btn-blue" onclick="copyToMainLyrics()">← 가사 결과에 덮어쓰기</button>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="goTo('p6c')">다음: 최종 가사 선택 →</button>
+    <button class="btn btn-secondary" onclick="goTo('p6')">← 이전</button>
+  </div>
+</div>
+
+<!-- ─── P6c: 최종 가사 선택 ─── -->
+<div class="page" id="p6c">
+  <div class="page-header">
+    <div>
+      <div class="page-title">최종 가사 선택</div>
+      <div class="page-desc">원 가사 / 보정 가사 / 직접 편집 중 Gemini 프롬프트에 사용할 최종 가사를 선택합니다.</div>
+    </div>
+    <span class="page-step-badge">STEP ⑦½</span>
+  </div>
+
+  <div class="notice">
+    <strong>이 단계는 선택입니다.</strong> 아래에서 최종 가사를 확정하면 Gemini 프롬프트 생성 시 자동으로 해당 가사가 사용됩니다.<br>
+    건너뛰면 보정 가사 → 원 가사 순서로 자동 선택됩니다.
+  </div>
+
+  <div class="card">
+    <div class="card-title">📝 가사 소스 선택</div>
+    <div class="final-lyrics-tabs">
+      <div class="fl-tab active" onclick="selectFinalLyricsSource('refined')">✨ 보정 가사 사용</div>
+      <div class="fl-tab" onclick="selectFinalLyricsSource('original')">🎵 원 가사 사용</div>
+      <div class="fl-tab" onclick="selectFinalLyricsSource('custom')">✏️ 직접 편집</div>
+    </div>
+
+    <div id="flPreview" style="margin-bottom:14px">
+      <div style="font-size:11.5px;color:var(--text3);margin-bottom:6px" id="flSourceLabel">현재 선택: 보정 가사</div>
+      <div class="result-box" id="flPreviewBox" style="display:none">
+        <div class="result-box-header">
+          <span class="result-box-label">미리보기 — 읽기 전용</span>
+        </div>
+        <textarea id="flPreviewTA" style="min-height:180px;color:var(--text3);" readonly placeholder="가사가 없습니다. 이전 단계를 완료해주세요."></textarea>
+      </div>
+    </div>
+
+    <div id="flCustomArea" style="display:none">
+      <div class="result-box">
+        <div class="result-box-header">
+          <span class="result-box-label">직접 편집 최종 가사</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn btn-ghost" onclick="fillFinalFromRefined()">보정 가사 불러오기</button>
+            <button class="btn btn-ghost" onclick="fillFinalFromOriginal()">원 가사 불러오기</button>
+          </div>
+        </div>
+        <textarea id="finalLyricsCustom" rows="12" placeholder="최종 가사를 직접 입력하거나, 위 버튼으로 기존 가사를 불러와 편집하세요."></textarea>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="confirmFinalLyrics()">✅ 이 가사로 확정하고 다음 →</button>
+      <button class="btn btn-secondary" onclick="goTo('p6b')">← 이전</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── P7: Gemini 프롬프트 ─── -->
+<div class="page" id="p7">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Gemini Lyria 프롬프트 생성</div>
+      <div class="page-desc">Gemini Lyria에 입력할 프롬프트를 자동 조합합니다. API 없이 즉시 생성됩니다.</div>
+    </div>
+    <span class="page-step-badge">STEP ⑧</span>
+  </div>
+
+  <div class="notice">
+    <strong>저작권 안전 문구</strong>가 자동 포함됩니다. 기존 아티스트·곡 이름은 프롬프트에서 자동 제거됩니다.
+  </div>
+
+  <div class="step-generate">
+    <div class="step-generate-label">생성 방식 선택 후 버튼 클릭 — Claude 필요 없이 즉시 생성</div>
+    <div style="display:flex;gap:7px;margin-bottom:12px" id="geminiModeGroup">
+      <label class="check-pill selected" id="gMode1" onclick="setGeminiMode(1)">✓ 큰 블록 3개</label>
+      <label class="check-pill" id="gMode2" onclick="setGeminiMode(2)">30초 10블록</label>
+      <label class="check-pill" id="gMode3" onclick="setGeminiMode(3)">둘 다 생성</label>
+    </div>
+    <button class="btn btn-primary" onclick="generateGeminiPrompts()">⚡ Gemini 프롬프트 생성</button>
+  </div>
+
+  <div id="geminiOutputArea" style="display:none">
+
+    <!-- 전체 접기/펼치기 -->
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;justify-content:flex-end">
+      <span class="copy-msg" id="copyAllBlocks">✓ 복사됨</span>
+      <button class="btn btn-secondary" onclick="copyAllGeminiBlocks()">📋 전체 Gemini 패키지 복사</button>
+      <button class="btn btn-ghost" onclick="collapseAllBlocks(true)">전체 접기</button>
+      <button class="btn btn-ghost" onclick="collapseAllBlocks(false)">전체 펼치기</button>
+    </div>
+
+    <!-- 마스터 프롬프트 -->
+    <div class="prompt-block">
+      <div class="prompt-block-header gemini-collapse-header" onclick="toggleBlock(this)">
+        <span class="prompt-block-title">🎯 마스터 스타일 프롬프트 (먼저 Gemini에 입력)</span>
+        <div style="display:flex;gap:8px;align-items:center" onclick="event.stopPropagation()">
+          <span class="copy-msg" id="copyGM">✓ 복사됨</span>
+          <button class="btn btn-ghost" onclick="copyText('geminiMaster','copyGM')">📋 Gemini 마스터 복사</button>
+          <span class="gemini-collapse-toggle">▼</span>
+        </div>
+      </div>
+      <div class="gemini-collapse-body">
+        <textarea id="geminiMaster"></textarea>
+      </div>
+    </div>
+
+    <!-- 큰 블록 3개 -->
+    <div id="bigBlockSection">
+      <div style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px;margin-top:4px">── 큰 블록 방식 (3개) ──────────────────</div>
+
+      <div class="prompt-block">
+        <div class="prompt-block-header gemini-collapse-header" onclick="toggleBlock(this)">
+          <span class="prompt-block-title">🅐 블록 A — 인트로 + 1절 (도입부)</span>
+          <div style="display:flex;gap:8px;align-items:center" onclick="event.stopPropagation()">
+            <span class="copy-msg" id="copyGA">✓ 복사됨</span>
+            <button class="btn btn-ghost" onclick="copyText('geminiBlockA','copyGA')">📋 Gemini 블록 A 복사</button>
+            <span class="gemini-collapse-toggle">▼</span>
+          </div>
+        </div>
+        <div class="gemini-collapse-body">
+          <textarea id="geminiBlockA"></textarea>
+        </div>
+      </div>
+
+      <div class="prompt-block">
+        <div class="prompt-block-header gemini-collapse-header" onclick="toggleBlock(this)">
+          <span class="prompt-block-title">🅑 블록 B — 2절 + 브릿지 (전개부)</span>
+          <div style="display:flex;gap:8px;align-items:center" onclick="event.stopPropagation()">
+            <span class="copy-msg" id="copyGB">✓ 복사됨</span>
+            <button class="btn btn-ghost" onclick="copyText('geminiBlockB','copyGB')">📋 Gemini 블록 B 복사</button>
+            <span class="gemini-collapse-toggle">▼</span>
+          </div>
+        </div>
+        <div class="gemini-collapse-body">
+          <textarea id="geminiBlockB"></textarea>
+        </div>
+      </div>
+
+      <div class="prompt-block">
+        <div class="prompt-block-header gemini-collapse-header" onclick="toggleBlock(this)">
+          <span class="prompt-block-title">🅒 블록 C — 마지막 후렴 + 아웃트로 (클라이맥스)</span>
+          <div style="display:flex;gap:8px;align-items:center" onclick="event.stopPropagation()">
+            <span class="copy-msg" id="copyGC">✓ 복사됨</span>
+            <button class="btn btn-ghost" onclick="copyText('geminiBlockC','copyGC')">📋 Gemini 블록 C 복사</button>
+            <span class="gemini-collapse-toggle">▼</span>
+          </div>
+        </div>
+        <div class="gemini-collapse-body">
+          <textarea id="geminiBlockC"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- 30초 10블록 -->
+    <div id="tenBlockSection" style="display:none">
+      <div style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px;margin-top:4px" id="tenBlockLabel">── 30초 단위 블록 방식 (10개) ──────────────────</div>
+      <div class="notice">
+        <strong>사용 방법:</strong> 블록 01부터 순서대로 Gemini에 입력하세요. 각 블록은 이전 블록과 연속성을 유지합니다.
+      </div>
+      <div id="tenBlockContainer"></div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- 수정 프롬프트 -->
+    <div style="margin-bottom:10px">
+      <div class="card-title" style="margin-bottom:12px">🔧 문제별 수정 프롬프트</div>
+      <div id="revisionPrompts"></div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="goTo('p8')">다음: 제작 평가 →</button>
+    <button class="btn btn-secondary" onclick="goTo('p6c')">← 이전</button>
+  </div>
+</div>
+
+<!-- ─── P8: 제작 평가 (신규 완성) ─── -->
+<div class="page" id="p8">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Gemini 제작 평가 · 수정</div>
+      <div class="page-desc">Gemini에서 생성한 음원을 듣고 블록별로 평가합니다. 문제를 체크하면 수정 프롬프트가 자동 생성됩니다.</div>
+    </div>
+    <span class="page-step-badge">STEP ⑨</span>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📊 블록 평가 추가</div>
+    <div class="btn-row" style="margin-top:0">
+      <button class="btn btn-primary" onclick="addEval()">+ 블록 평가 추가</button>
+      <button class="btn btn-secondary" onclick="addEvalPreset('big')">큰 블록 3개 일괄 추가</button>
+      <button class="btn btn-secondary" onclick="addEvalPreset('ten')">30초 블록 10개 일괄 추가</button>
+    </div>
+  </div>
+
+  <div id="evalList"></div>
+
+  <!-- 자동 수정 프롬프트 -->
+  <div class="card" id="autoRevisionCard" style="display:none">
+    <div class="card-title">🔧 자동 생성된 수정 프롬프트</div>
+    <div class="result-box">
+      <div class="result-box-header">
+        <span class="result-box-label">수정 프롬프트 — Gemini에 복사·붙여넣기</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="copy-msg" id="copyAutoRev">✓ 복사됨</span>
+          <button class="btn btn-ghost" onclick="copyText('revisionOutput','copyAutoRev')">📋 복사</button>
+        </div>
+      </div>
+      <textarea id="revisionOutput" style="min-height:140px"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-green" onclick="saveVersion('revision','revisionOutput',this)">💾 버전 저장</button>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="goTo('p9')">버전 히스토리 →</button>
+    <button class="btn btn-secondary" onclick="goTo('p7')">← 이전</button>
+  </div>
+</div>
+
+<!-- ─── P9: 버전 히스토리 ─── -->
+<div class="page" id="p9">
+  <div class="page-header">
+    <div>
+      <div class="page-title">버전 히스토리</div>
+      <div class="page-desc">저장된 모든 버전을 확인하고 복사할 수 있습니다.</div>
+    </div>
+  </div>
+  <div id="versionList">
+    <div style="color:var(--text3);font-size:13px;text-align:center;padding:40px">아직 저장된 버전이 없습니다.<br>각 단계에서 "버전 저장" 버튼을 눌러 기록하세요.</div>
+  </div>
+</div>
+
+<!-- ─── P11: 전체 작업공간 ─── -->
+<div class="page" id="p11">
+  <div class="page-header">
+    <div>
+      <div class="page-title">전체 작업공간</div>
+      <div class="page-desc">모든 결과물을 한 화면에서 확인하고 복사할 수 있습니다.</div>
+    </div>
+    <span class="page-step-badge">WORKSPACE</span>
+  </div>
+
+  <!-- 전체 Gemini 패키지 복사 버튼 -->
+  <div class="ws-package-btn" onclick="copyFullGeminiPackage()">
+    <div>
+      <div class="ws-pkg-label">⚡ 전체 Gemini 패키지 복사</div>
+      <div class="ws-pkg-desc">마스터 + 블록 A + 블록 B + 블록 C를 한 번에 클립보드에 복사합니다</div>
+    </div>
+    <span style="font-size:22px">📋</span>
+  </div>
+  <span class="copy-msg" id="copyFullPkg" style="margin-bottom:12px;display:block;text-align:center"></span>
+
+  <div class="workspace-grid">
+
+    <!-- DNA 분석 -->
+    <div class="ws-block">
+      <div class="ws-block-title">
+        🧬 DNA 분석
+        <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px" onclick="copyText('ws_dna','cp_ws_dna')">복사</button>
+      </div>
+      <span class="copy-msg" id="cp_ws_dna"></span>
+      <textarea id="ws_dna" readonly placeholder="DNA 분석 결과가 없습니다."></textarea>
+    </div>
+
+    <!-- 콘셉트 -->
+    <div class="ws-block">
+      <div class="ws-block-title">
+        💡 콘셉트
+        <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px" onclick="copyText('ws_concept','cp_ws_concept')">복사</button>
+      </div>
+      <span class="copy-msg" id="cp_ws_concept"></span>
+      <textarea id="ws_concept" readonly placeholder="콘셉트 결과가 없습니다."></textarea>
+    </div>
+
+    <!-- 가사 -->
+    <div class="ws-block">
+      <div class="ws-block-title">
+        🎵 최종 가사
+        <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px" onclick="copyText('ws_lyrics','cp_ws_lyrics')">복사</button>
+      </div>
+      <span class="copy-msg" id="cp_ws_lyrics"></span>
+      <textarea id="ws_lyrics" readonly placeholder="가사가 없습니다."></textarea>
+    </div>
+
+    <!-- 구조 -->
+    <div class="ws-block">
+      <div class="ws-block-title">
+        🏗️ 곡 구조
+        <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px" onclick="copyText('ws_structure','cp_ws_structure')">복사</button>
+      </div>
+      <span class="copy-msg" id="cp_ws_structure"></span>
+      <textarea id="ws_structure" readonly placeholder="구조 결과가 없습니다."></textarea>
+    </div>
+
+    <!-- Gemini 마스터 -->
+    <div class="ws-block ws-full">
+      <div class="ws-block-title">
+        🎯 Gemini 마스터 프롬프트
+        <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px" onclick="copyText('ws_master','cp_ws_master')">Gemini 마스터 복사</button>
+      </div>
+      <span class="copy-msg" id="cp_ws_master"></span>
+      <textarea id="ws_master" readonly style="min-height:160px" placeholder="Gemini 마스터 프롬프트가 없습니다. Gemini 프롬프트 페이지에서 먼저 생성하세요."></textarea>
+    </div>
+
+    <!-- 블록 A -->
+    <div class="ws-block">
+      <div class="ws-block-title">
+        🅐 Gemini 블록 A
+        <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px" onclick="copyText('ws_blockA','cp_ws_blockA')">블록 A 복사</button>
+      </div>
+      <span class="copy-msg" id="cp_ws_blockA"></span>
+      <textarea id="ws_blockA" readonly placeholder="블록 A 없음"></textarea>
+    </div>
+
+    <!-- 블록 B -->
+    <div class="ws-block">
+      <div class="ws-block-title">
+        🅑 Gemini 블록 B
+        <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px" onclick="copyText('ws_blockB','cp_ws_blockB')">블록 B 복사</button>
+      </div>
+      <span class="copy-msg" id="cp_ws_blockB"></span>
+      <textarea id="ws_blockB" readonly placeholder="블록 B 없음"></textarea>
+    </div>
+
+    <!-- 블록 C -->
+    <div class="ws-block ws-full">
+      <div class="ws-block-title">
+        🅒 Gemini 블록 C
+        <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px" onclick="copyText('ws_blockC','cp_ws_blockC')">블록 C 복사</button>
+      </div>
+      <span class="copy-msg" id="cp_ws_blockC"></span>
+      <textarea id="ws_blockC" readonly placeholder="블록 C 없음"></textarea>
+    </div>
+
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="refreshWorkspace()">🔄 새로고침 (최신 내용 반영)</button>
+    <button class="btn btn-secondary" onclick="goTo('p7')">Gemini 프롬프트 페이지로 →</button>
+    <button class="btn btn-secondary" onclick="goTo('p9')">버전 히스토리 →</button>
+  </div>
+</div>
+
+<!-- ─── P10: 내보내기 ─── -->
+<div class="page" id="p10">
+  <div class="page-header">
+    <div>
+      <div class="page-title">내보내기 / 저장</div>
+      <div class="page-desc">프로젝트를 다양한 형식으로 내보냅니다.</div>
+    </div>
+  </div>
+
+  <div class="export-grid">
+    <div class="export-card" onclick="exportMarkdown()">
+      <div class="ec-icon">📄</div>
+      <div class="ec-title">전체 보고서 (.md)</div>
+      <div class="ec-desc">모든 프롬프트, 가사, 설정, 버전 기록을 Markdown 파일로 저장합니다.</div>
+    </div>
+    <div class="export-card" onclick="exportJSON()">
+      <div class="ec-icon">💾</div>
+      <div class="ec-title">프로젝트 백업 (.json)</div>
+      <div class="ec-desc">전체 데이터를 JSON으로 내보냅니다. 나중에 불러와 이어 작업 가능.</div>
+    </div>
+    <div class="export-card" onclick="exportGeminiTXT()">
+      <div class="ec-icon">🎵</div>
+      <div class="ec-title">Gemini 프롬프트 (.txt)</div>
+      <div class="ec-desc">마스터 + 모든 블록 프롬프트만 텍스트 파일로 저장합니다.</div>
+    </div>
+    <div class="export-card" onclick="exportLyricsTXT()">
+      <div class="ec-icon">✍️</div>
+      <div class="ec-title">최종 가사 (.txt)</div>
+      <div class="ec-desc">보정된 가사 또는 최종 가사만 텍스트 파일로 저장합니다.</div>
+    </div>
+    <div class="export-card" onclick="exportRevisionTXT()">
+      <div class="ec-icon">🔧</div>
+      <div class="ec-title">수정 프롬프트 (.txt)</div>
+      <div class="ec-desc">모든 수정 프롬프트를 모아서 저장합니다.</div>
+    </div>
+    <div class="export-card" onclick="exportAllPrompts()">
+      <div class="ec-icon">📋</div>
+      <div class="ec-title">전체 AI 프롬프트 (.txt)</div>
+      <div class="ec-desc">DNA, 콘셉트, 구조, 가사, Gemini 프롬프트를 하나의 파일로 저장합니다.</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="card">
+    <div class="card-title">📥 JSON 불러오기</div>
+    <div class="form-group">
+      <label>저장된 JSON 파일 선택</label>
+      <input type="file" id="loadJSON" accept=".json" style="color:var(--text2);padding:6px 0;" onchange="importJSON(this)">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🗑️ 데이터 초기화</div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:12px">현재 프로젝트의 모든 데이터를 삭제합니다. 먼저 JSON으로 백업하세요.</p>
+    <button class="btn btn-danger" onclick="clearAll()">전체 초기화</button>
+  </div>
+</div>
+
+</main>
+
+<script>
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let state = {
+  project: {},
+  versions: [],
+  structOpt: 1,   // 1=big3, 2=ten30, 3=both
+  geminiMode: 1
+};
+
+// ══════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════
+document.querySelectorAll('.sidebar-item').forEach(item => {
+  item.addEventListener('click', () => goTo(item.dataset.page));
+});
+
+function goTo(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+  const page = document.getElementById(pageId);
+  const item = document.querySelector(`[data-page="${pageId}"]`);
+  if (page) page.classList.add('active');
+  if (item) item.classList.add('active');
+  document.getElementById('main').scrollTop = 0;
+}
+
+// mode tabs (input modes)
+document.querySelectorAll('.mode-tab[data-mode]').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const page = tab.closest('.page') || document.body;
+    page.querySelectorAll('.mode-tab[data-mode]').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const mode = tab.dataset.mode;
+    page.querySelectorAll('.mode-panel').forEach(p => {
+      p.classList.toggle('active', p.id === 'mode-' + mode);
+    });
+  });
+});
+
+// lyrics tabs
+document.querySelectorAll('.mode-tab[data-ltab]').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.mode-tab[data-ltab]').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('[id^="ltab-"]').forEach(p => {
+      p.classList.toggle('active', p.id === 'ltab-' + tab.dataset.ltab);
+    });
+  });
+});
+
+// check pills
+// ── check-pill 클릭 처리 (change + click 이중 처리로 신뢰성 보장) ──
+const PILL_SELECTORS = '.check-pill, .vci-pill, .neg-pill';
+
+function applyPillState(input) {
+  const pill = input.closest('.check-pill, .vci-pill, .neg-pill');
+  if (!pill) return;
+  if (input.type === 'radio') {
+    // 같은 name 그룹 전체 선택 해제 후 현재만 선택
+    document.querySelectorAll(`input[name="${input.name}"]`).forEach(r => {
+      r.closest('.check-pill, .vci-pill, .neg-pill')?.classList.remove('selected');
+    });
+    pill.classList.add('selected');
+    input.checked = true;
+  } else {
+    pill.classList.toggle('selected', input.checked);
+  }
+}
+
+document.addEventListener('change', e => {
+  if (e.target.type === 'checkbox' || e.target.type === 'radio') {
+    applyPillState(e.target);
+  }
+});
+
+// radio 버튼은 이미 선택된 것을 다시 누르면 change가 발생 안 하므로 click도 처리
+document.addEventListener('click', e => {
+  const pill = e.target.closest('.check-pill, .vci-pill, .neg-pill');
+  if (!pill) return;
+  const input = pill.querySelector('input[type="radio"]');
+  if (input) {
+    setTimeout(() => applyPillState(input), 0);
+  }
+});
+
+// 페이지 로드 시 checked 상태를 .selected 클래스로 초기화
+function initPillStates() {
+  document.querySelectorAll('.check-pill input, .vci-pill input, .neg-pill input').forEach(input => {
+    if (input.checked) {
+      input.closest('.check-pill, .vci-pill, .neg-pill')?.classList.add('selected');
+    }
+  });
+}
+document.addEventListener('DOMContentLoaded', initPillStates);
+// LS 복원 후에도 재적용 (loadLS 뒤에서 호출됨)
+
+
+// ══════════════════════════════════════════════
+// PROGRESS
+// ══════════════════════════════════════════════
+// B6 수정: STEPS_TOTAL = 9 → 실제 단계 배열 기준으로 변경 (p0~p8 = 9스텝, p9/p10은 관리)
+const REQUIRED_STEPS = ['p0','p1','p2','p3','p4','p5','p6','p6b','p6c','p7','p8'];
+const STEPS_TOTAL = REQUIRED_STEPS.length; // 10
+let doneSteps = new Set();
+
+// 각 단계의 "완료 여부"를 판단하는 결과 textarea 매핑
+const STEP_DONE_CHECK = {
+  p3:  'dnaResult',
+  p4:  'conceptResult',
+  p5:  'structureResult',
+  p6:  'lyricsResult',
+  p6b: 'refinedLyricsResult',
+  p7:  'geminiMaster',
+  p8:  null  // 평가는 결과물 없음 — goTo시 markDone 유지
+};
+
+function markDone(pageId) {
+  document.querySelector(`[data-page="${pageId}"]`)?.classList.add('done');
+  doneSteps.add(pageId);
+  updateProgress();
+}
+
+function updateProgress() {
+  const pct = Math.round(doneSteps.size / STEPS_TOTAL * 100);
+  document.getElementById('progPct').textContent = pct + '%';
+  document.getElementById('progFill').style.width = pct + '%';
+}
+
+// 결과 textarea에 값이 생기면 자동으로 해당 단계 done 처리
+function autoMarkDoneFromTextarea(taId) {
+  const match = Object.entries(STEP_DONE_CHECK).find(([,v]) => v === taId);
+  if (match) {
+    const [pageId] = match;
+    const val = document.getElementById(taId)?.value?.trim();
+    if (val) markDone(pageId);
+  }
+}
+
+// main 영역의 textarea input 이벤트에서 자동 done 체크
+document.getElementById('main').addEventListener('input', e => {
+  if (e.target.tagName === 'TEXTAREA') {
+    autoMarkDoneFromTextarea(e.target.id);
+  }
+});
+
+// loadLS 후 done 상태 재계산
+function recalcDoneSteps() {
+  Object.entries(STEP_DONE_CHECK).forEach(([pageId, taId]) => {
+    if (!taId) return;
+    const val = document.getElementById(taId)?.value?.trim();
+    if (val) markDone(pageId);
+  });
+}
+
+// ══════════════════════════════════════════════
+// XSS 방지 유틸리티
+// ══════════════════════════════════════════════
+// B3 수정: 사용자 입력을 innerHTML에 삽입 시 반드시 이 함수로 이스케이프
+function escapeHTML(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
+// ══════════════════════════════════════════════
+// SONGS
+// ══════════════════════════════════════════════
+function addSong(data = {}) {
+  const list = document.getElementById('songList');
+  const num = list.children.length + 1;
+  const div = document.createElement('div');
+  div.className = 'song-row';
+  // B3 수정: 사용자 입력값 escapeHTML 처리 (XSS 방지)
+  div.innerHTML = `
+    <div class="song-row-header">
+      <span class="song-num">${num}</span>
+      <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><label>곡명</label><input type="text" class="s-title" placeholder="소나기" value="${escapeHTML(data.title||'')}"></div>
+        <div><label>가수</label><input type="text" class="s-artist" placeholder="김장훈" value="${escapeHTML(data.artist||'')}"></div>
+      </div>
+      <button class="btn btn-danger" onclick="this.closest('.song-row').remove();renumberSongs()">삭제</button>
+    </div>
+    <div class="song-detail-grid">
+      <div><label>좋아하는 이유</label><textarea class="s-reason" rows="2" placeholder="잔잔하고 슬픈 감성">${escapeHTML(data.reason||'')}</textarea></div>
+      <div><label>특히 좋은 부분</label><textarea class="s-fav" rows="2" placeholder="후반부 감정 고조">${escapeHTML(data.fav||'')}</textarea></div>
+      <div><label>피하고 싶은 요소</label><textarea class="s-avoid" rows="2" placeholder="멜로디 직접 모방">${escapeHTML(data.avoid||'')}</textarea></div>
+    </div>`;
+  list.appendChild(div);
+}
+
+function renumberSongs() {
+  document.querySelectorAll('#songList .song-row').forEach((row, i) => {
+    row.querySelector('.song-num').textContent = i + 1;
+  });
+}
+
+function getSongs() {
+  return Array.from(document.querySelectorAll('#songList .song-row')).map(row => ({
+    title: row.querySelector('.s-title').value,
+    artist: row.querySelector('.s-artist').value,
+    reason: row.querySelector('.s-reason').value,
+    fav: row.querySelector('.s-fav').value,
+    avoid: row.querySelector('.s-avoid').value
+  })).filter(s => s.title || s.artist);
+}
+
+function getChecked(groupId) {
+  return Array.from(document.querySelectorAll(`#${groupId} input:checked`)).map(i => i.value);
+}
+
+// ══════════════════════════════════════════════
+// STRUCT / GEMINI MODE
+// ══════════════════════════════════════════════
+function setStructOpt(n) {
+  state.structOpt = n;
+  [1,2,3].forEach(i => {
+    const el = document.getElementById(`structOpt${i}`);
+    const labels = ['큰 블록 3개','30초 10블록','둘 다 생성'];
+    el.textContent = (i === n ? '✓ ' : '') + labels[i-1];
+    el.classList.toggle('selected', i === n);
+  });
+}
+
+function setGeminiMode(n) {
+  state.geminiMode = n;
+  [1,2,3].forEach(i => {
+    const el = document.getElementById(`gMode${i}`);
+    const labels = ['큰 블록 3개','30초 10블록','둘 다 생성'];
+    el.textContent = (i === n ? '✓ ' : '') + labels[i-1];
+    el.classList.toggle('selected', i === n);
+  });
+}
+
+// ══════════════════════════════════════════════
+// PROJECT
+// ══════════════════════════════════════════════
+function saveProject() {
+  state.project = {
+    name: document.getElementById('projectName').value,
+    author: document.getElementById('projectAuthor').value,
+    songCount: document.getElementById('songCount').value,
+    songLength: document.getElementById('songLength').value,
+    genMode: document.getElementById('genMode').value,
+    purposes: getChecked('purposeGroup'),
+    memo: document.getElementById('projectMemo').value
+  };
+  saveLS();
+  markDone('p0');
+}
+
+// ══════════════════════════════════════════════
+// BUILD CONTEXT
+// ══════════════════════════════════════════════
+function buildContext() {
+  const songs = getSongs();
+  const moods = getChecked('moodGroup');
+  const instrs = getChecked('instrGroup');
+  const themes = getChecked('themeGroup');
+  const styleText = document.getElementById('styleText').value;
+  const directLyrics = document.getElementById('directLyrics').value;
+  const extra = document.getElementById('extraDirections').value;
+
+  let ctx = '';
+  if (songs.length) {
+    ctx += `[레퍼런스 노래 목록]\n`;
+    songs.forEach((s,i) => {
+      ctx += `${i+1}. ${s.title} - ${s.artist}\n`;
+      if (s.reason) ctx += `   좋아하는 이유: ${s.reason}\n`;
+      if (s.fav) ctx += `   특히 좋은 부분: ${s.fav}\n`;
+      if (s.avoid) ctx += `   피하고 싶은 요소: ${s.avoid}\n`;
+    });
+    ctx += '\n';
+  }
+  if (styleText) ctx += `[직접 설정한 노래풍]\n${styleText}\n\n`;
+  if (directLyrics) ctx += `[직접 작성한 가사]\n${directLyrics}\n\n`;
+  if (moods.length) ctx += `[원하는 정서] ${moods.join(', ')}\n`;
+  ctx += `[장르] ${document.getElementById('genre').value}\n`;
+  ctx += `[보컬] ${document.getElementById('vocal').value}\n`;
+  const bpmCustom = document.getElementById('bpmCustom').value;
+  ctx += `[BPM] ${document.getElementById('bpm').value}${bpmCustom ? ' / 직접입력: ' + bpmCustom : ''}\n`;
+  if (instrs.length) ctx += `[악기] ${instrs.join(', ')}\n`;
+  if (themes.length) ctx += `[가사 주제] ${themes.join(', ')}\n`;
+  if (extra) ctx += `[추가 지시] ${extra}\n`;
+  return ctx;
+}
+
+// ══════════════════════════════════════════════
+// PROMPT GENERATORS
+// ══════════════════════════════════════════════
+function generateDNAPrompt() {
+  const ctx = buildContext();
+  const prompt = `아래 정보를 바탕으로 이 노래들의 음악적 공통점과 특징을 분석해줘.
+목적: 기존 곡을 모방하는 것이 아니라, 공통된 감성과 음악적 DNA만 추출해서 완전히 새로운 오리지널 한국어 노래를 만들기 위한 참고 자료.
+
+⚠️ 중요: 최종 결과에서 특정 아티스트 이름이나 곡 제목은 언급하지 말고, 공통 분위기와 특징만 추상화해줘.
+
+${ctx}
+─────────────────────────────────────────
+다음 항목을 분석해줘:
+
+◆ 공통 정서 및 분위기 (3-5가지)
+◆ 추천 장르 (구체적인 서브장르까지)
+◆ BPM 범위 추천 (숫자로)
+◆ 악기 구성 (어떤 악기가 어느 파트에서 활용되는지)
+◆ 보컬 톤 특징 (감정 전달 방식 포함)
+◆ 후렴 구조 특징 (기억하기 쉬운 구조인지 등)
+◆ 곡 전개 패턴 (감정의 흐름, 빌드업 방식)
+◆ 절대 피해야 할 모방 요소 (저작권·유사성 방지)
+◆ 완전히 새로운 오리지널 곡으로 만들기 위한 방향 제안`;
+
+  show('dnaPromptTA', prompt);
+  document.getElementById('dnaPromptBlock').style.display = 'block';
+  markDone('p3');
+}
+
+function generateConceptPrompt() {
+  const dna = document.getElementById('dnaResult').value;
+  const ctx = buildContext();
+  const prompt = `아래 음악 DNA 분석 결과와 설정을 바탕으로 완전한 오리지널 한국어 곡의 콘셉트를 만들어줘.
+
+[음악 DNA 분석 결과]
+${dna || '(없음 — 아래 설정 정보 참고)'}
+
+${ctx}
+─────────────────────────────────────────
+다음을 만들어줘:
+
+◆ 제목 후보 10개 (한국어 감성을 살려서, 다양한 분위기로)
+◆ 최종 추천 제목 1개 + 선택 이유
+◆ 한 줄 콘셉트 (이 곡이 무엇인지 한 문장으로)
+◆ 핵심 메시지 (화자가 하고 싶은 말)
+◆ 화자의 상황 (어떤 사람이, 어떤 시점에, 어디서 이 노래를 부르는가)
+◆ 감정선 흐름 (처음부터 끝까지 변화 과정)
+◆ 절대 피해야 할 표현 / 클리셰 (기존 곡을 연상시키는 것 포함)
+◆ Gemini Lyria용 전체 스타일 한 문장 요약 (영어)`;
+
+  show('conceptPromptTA', prompt);
+  document.getElementById('conceptPromptBlock').style.display = 'block';
+  markDone('p4');
+}
+
+function generateStructurePrompt() {
+  const dna = document.getElementById('dnaResult').value;
+  const concept = document.getElementById('conceptResult').value;
+  const length = document.getElementById('songLength').value;
+  const opt = state.structOpt;
+  const modeName = opt === 3 ? '둘 다' : opt === 2 ? '30초 10블록' : '큰 블록 3개';
+
+  const bigPart = `
+【큰 블록 3개 방식 — Gemini Lyria용】
+블록 A (도입부): Intro + Verse 1 + Chorus 1
+블록 B (전개부): Verse 2 + Pre-Chorus + Chorus 2 + Bridge
+블록 C (클라이맥스): Final Chorus + Climax + Outro
+
+각 블록별로:
+- 시작~끝 시간
+- 포함 파트
+- 악기 변화 (어떤 악기가 들어오고 나가는지)
+- 감정 강도 (1~10)
+- Gemini 입력 핵심 키워드 (영어)`;
+
+  const tenPart = `
+【30초 10블록 방식 — Gemini Lyria용】
+블록 01~10까지 각각:
+- 시간대 (예: 0:00-0:30)
+- 파트명 (Intro / Verse 1 / etc.)
+- 악기 강도 (낮음/중간/높음)
+- 이전 블록과의 연속성 키워드
+- 분위기 및 가사 역할
+- Gemini 입력 핵심 키워드 (영어)`;
+
+  const prompt = `아래 정보를 바탕으로 한국어 오리지널 곡의 구조를 설계해줘.
+
+[DNA 분석]
+${dna || '(없음)'}
+
+[콘셉트]
+${concept || '(없음)'}
+
+[목표 길이] ${length}
+[구성 방식] ${modeName}
+
+─────────────────────────────────────────
+${opt === 1 || opt === 3 ? bigPart : ''}
+${opt === 2 || opt === 3 ? tenPart : ''}
+
+마지막에 전체 파트별 타임라인 표도 만들어줘 (시간 | 파트 | 악기 | 감정강도 | 역할).
+기존 곡이나 특정 아티스트의 구조를 모방하지 말 것.`;
+
+  show('structPromptTA', prompt);
+  document.getElementById('structPromptBlock').style.display = 'block';
+  markDone('p5');
+}
+
+function generateLyricsPrompt(mode) {
+  const dna = document.getElementById('dnaResult').value;
+  const concept = document.getElementById('conceptResult').value;
+  const structure = document.getElementById('structureResult').value;
+  const extra = document.getElementById('lyricsExtra').value;
+  const directLyrics = document.getElementById('directLyrics').value;
+  const arrangeMode = document.getElementById('arrangeMode').value;
+  const themes = getChecked('themeGroup').join(', ');
+
+  let prompt = '';
+  if (mode === 'auto') {
+    prompt = `아래 정보를 바탕으로 완전한 한국어 오리지널 가사를 써줘.
+⚠️ 기존 노래와 비슷한 멜로디·표현·감동 포인트는 절대 사용하지 마. 완전히 새로운 오리지널로.
+
+[DNA] ${dna || '(없음)'}
+[콘셉트] ${concept || '(없음)'}
+[구조] ${structure || '(없음)'}
+[가사 주제] ${themes || '자유'}
+${extra ? '[추가 지시] ' + extra : ''}
+
+─────────────────────────────────────────
+다음 파트를 모두 써줘:
+• Intro (선택, 짧게)
+• Verse 1
+• Pre-Chorus 1 (선택)
+• Chorus 1
+• Verse 2
+• Pre-Chorus 2 (선택)
+• Chorus 2
+• Bridge (핵심 메시지 집약)
+• Final Chorus (후렴보다 강하게)
+• Outro (선택)
+
+작성 조건:
+- 완전한 한국어로
+- 후렴은 기억에 남고 따라부르기 쉽게 (4~6행)
+- 감정선이 Intro → Final Chorus로 점점 고조되도록
+- 클리셰 표현 금지
+- 조사·음절이 노래로 부를 때 자연스럽게
+- 각 파트 끝에 [파트명] 표시`;
+  } else {
+    prompt = `아래 가사를 "${arrangeMode}" 방식으로 처리해줘.
+
+[원본 가사]
+${directLyrics || '(직접 입력한 가사 없음)'}
+
+[콘셉트] ${concept || '(없음)'}
+[구조] ${structure || '(없음)'}
+
+─────────────────────────────────────────
+처리 방식: ${arrangeMode}
+${arrangeMode.includes('원문') ? '가사 원문을 최대한 유지하면서 파트별로 배치해줘.' : ''}
+${arrangeMode.includes('리듬') ? '노래에서 자연스럽게 들릴 수 있도록 음절과 리듬감을 조정해줘. 원문 뉘앙스는 유지할 것.' : ''}
+${arrangeMode.includes('재작성') ? '주제와 감정선만 유지하고 표현은 완전히 새롭게 써줘.' : ''}
+
+결과물:
+1. 처리된 가사 (파트명 표시)
+2. 원문과 달라진 부분 설명`;
+  }
+
+  show('lyricsPromptTA', prompt);
+  document.getElementById('lyricsPromptBlock').style.display = 'block';
+  markDone('p6');
+}
+
+function generateRefinementPrompt() {
+  const lyrics = document.getElementById('lyricsResult').value;
+  const refinements = getChecked('refinementGroup');
+  const extra = document.getElementById('refinementExtra').value;
+
+  const refStr = refinements.length ? refinements.join(', ') : '전체 교정';
+
+  const prompt = `아래 가사를 "${refStr}" 방식으로 보정해줘.
+
+[현재 가사]
+${lyrics || '(가사 없음 — ⑥번 단계에서 가사를 먼저 작성하세요)'}
+
+─────────────────────────────────────────
+보정 항목:
+${refinements.map(r => `◆ ${r}`).join('\n') || '◆ 전체 교정'}
+${extra ? `◆ 추가 지시: ${extra}` : ''}
+
+보정 규칙:
+- 핵심 메시지와 감정선은 유지할 것
+- 발음이 어색한 조사(을/를 → 의 등) 수정
+- 노래 박자에 맞지 않는 긴 문장은 나눠줄 것
+- 후렴은 더 단순하고 반복 가능하게
+- 기존 유명 곡을 연상시키는 표현은 피할 것
+
+결과:
+1. 보정된 전체 가사 (파트명 표시)
+2. 주요 변경 사항 요약`;
+
+  show('refinementPromptTA', prompt);
+  document.getElementById('refinementPromptBlock').style.display = 'block';
+  markDone('p6b');
+}
+
+function copyToMainLyrics() {
+  const val = document.getElementById('refinedLyricsResult').value;
+  if (!val) { alert('보정된 가사가 없습니다.'); return; }
+  document.getElementById('lyricsResult').value = val;
+  alert('✅ 가사 결과에 복사되었습니다.');
+}
+
+// ══════════════════════════════════════════════
+// 최종 가사 선택 (P6c) — 미구현 함수 완성
+// ══════════════════════════════════════════════
+let _finalLyricsSource = 'refined'; // 'refined' | 'original' | 'custom'
+
+function selectFinalLyricsSource(source) {
+  _finalLyricsSource = source;
+
+  // 탭 active 상태 전환
+  document.querySelectorAll('.fl-tab').forEach(t => t.classList.remove('active'));
+  const tabs = document.querySelectorAll('.fl-tab');
+  const tabMap = { refined: 0, original: 1, custom: 2 };
+  if (tabs[tabMap[source]]) tabs[tabMap[source]].classList.add('active');
+
+  // 라벨 업데이트
+  const labels = { refined: '보정 가사', original: '원 가사', custom: '직접 편집' };
+  const labelEl = document.getElementById('flSourceLabel');
+  if (labelEl) labelEl.textContent = '현재 선택: ' + (labels[source] || source);
+
+  // 미리보기 / 편집 영역 전환
+  const previewBox  = document.getElementById('flPreviewBox');
+  const customArea  = document.getElementById('flCustomArea');
+  const previewTA   = document.getElementById('flPreviewTA');
+
+  if (source === 'custom') {
+    if (previewBox) previewBox.style.display = 'none';
+    if (customArea) customArea.style.display = 'block';
+  } else {
+    if (customArea) customArea.style.display = 'none';
+    const lyrics = source === 'refined'
+      ? document.getElementById('refinedLyricsResult')?.value
+      : document.getElementById('lyricsResult')?.value;
+    if (previewTA) previewTA.value = lyrics || '';
+    if (previewBox) previewBox.style.display = lyrics ? 'block' : 'none';
+  }
+}
+
+function fillFinalFromRefined() {
+  const val = document.getElementById('refinedLyricsResult')?.value || '';
+  const ta = document.getElementById('finalLyricsCustom');
+  if (ta) ta.value = val;
+  if (!val) alert('보정 가사가 없습니다. 먼저 ⑦ 가사 보정 단계를 완료해주세요.');
+}
+
+function fillFinalFromOriginal() {
+  const val = document.getElementById('lyricsResult')?.value || '';
+  const ta = document.getElementById('finalLyricsCustom');
+  if (ta) ta.value = val;
+  if (!val) alert('원 가사가 없습니다. 먼저 ⑥ 가사 생성 단계를 완료해주세요.');
+}
+
+function confirmFinalLyrics() {
+  let finalLyrics = '';
+
+  if (_finalLyricsSource === 'custom') {
+    finalLyrics = document.getElementById('finalLyricsCustom')?.value?.trim() || '';
+    if (!finalLyrics) { alert('직접 편집 가사를 입력해주세요.'); return; }
+  } else if (_finalLyricsSource === 'original') {
+    finalLyrics = document.getElementById('lyricsResult')?.value?.trim() || '';
+    if (!finalLyrics) { alert('원 가사가 없습니다. ⑥ 가사 생성 단계를 먼저 완료해주세요.'); return; }
+  } else {
+    // refined (기본)
+    finalLyrics = document.getElementById('refinedLyricsResult')?.value?.trim()
+               || document.getElementById('lyricsResult')?.value?.trim()
+               || '';
+    if (!finalLyrics) { alert('가사가 없습니다. ⑥ 또는 ⑦ 단계를 먼저 완료해주세요.'); return; }
+  }
+
+  // refinedLyricsResult에 최종 가사를 반영 (Gemini 프롬프트 생성이 이를 참조)
+  const refinedTA = document.getElementById('refinedLyricsResult');
+  if (refinedTA && _finalLyricsSource !== 'refined') {
+    // 원 가사 / 직접 편집 선택 시 refinedLyricsResult에 덮어씌우지 않고
+    // 별도 state에 저장
+    state._confirmedLyrics = finalLyrics;
+  } else {
+    state._confirmedLyrics = finalLyrics;
+  }
+
+  markDone('p6c');
+  saveLS();
+  goTo('p7');
+}
+
+// ─── 블록 접기/펼치기 ─────────────────────────────────────────
+function toggleBlock(headerEl) {
+  const body = headerEl.nextElementSibling;
+  const toggle = headerEl.querySelector('.gemini-collapse-toggle');
+  if (!body) return;
+  const collapsed = body.classList.toggle('collapsed');
+  if (toggle) toggle.textContent = collapsed ? '▶' : '▼';
+}
+
+function collapseAllBlocks(collapse) {
+  document.querySelectorAll('.gemini-collapse-body').forEach(body => {
+    body.classList.toggle('collapsed', collapse);
+  });
+  document.querySelectorAll('.gemini-collapse-toggle').forEach(t => {
+    t.textContent = collapse ? '▶' : '▼';
+  });
+}
+
+// ─── clipboard 복사 헬퍼 ─────────────────────────────────────
+function copyToClipboard(text, successMsgId) {
+  const doSuccess = () => {
+    const msg = successMsgId ? document.getElementById(successMsgId) : null;
+    if (msg) { msg.classList.add('show'); setTimeout(() => msg.classList.remove('show'), 2000); }
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(doSuccess).catch(() => {
+      _execCopy(text); doSuccess();
+    });
+  } else { _execCopy(text); doSuccess(); }
+}
+function _execCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+  document.body.removeChild(ta);
+}
+
+// ─── 전체 Gemini 패키지 복사 (p7) ────────────────────────────
+function copyAllGeminiBlocks() {
+  const master = document.getElementById('geminiMaster')?.value || '';
+  const blockA = document.getElementById('geminiBlockA')?.value || '';
+  const blockB = document.getElementById('geminiBlockB')?.value || '';
+  const blockC = document.getElementById('geminiBlockC')?.value || '';
+  let tenBlocks = '';
+  for (let i = 1; i <= 30; i++) {
+    const num = String(i).padStart(2, '0');
+    const val = document.getElementById(`tenBlock${num}`)?.value;
+    if (!val) break;
+    tenBlocks += `\n\n=== 30초 블록 ${num} ===\n${val}`;
+  }
+  const parts = [
+    master && `=== 마스터 스타일 프롬프트 ===\n${master}`,
+    blockA && `=== 블록 A (도입부) ===\n${blockA}`,
+    blockB && `=== 블록 B (전개부) ===\n${blockB}`,
+    blockC && `=== 블록 C (클라이맥스) ===\n${blockC}`,
+    tenBlocks
+  ].filter(Boolean).join('\n\n');
+  if (!parts.trim()) { alert('먼저 "Gemini 프롬프트 생성" 버튼을 눌러 프롬프트를 생성해주세요.'); return; }
+  copyToClipboard(parts, 'copyAllBlocks');
+}
+
+// ─── 전체 Gemini 패키지 복사 (작업공간 p11) ─────────────────
+function copyFullGeminiPackage() {
+  const g = id => document.getElementById(id)?.value || '';
+  const master = g('geminiMaster') || g('ws_master');
+  const blockA = g('geminiBlockA') || g('ws_blockA');
+  const blockB = g('geminiBlockB') || g('ws_blockB');
+  const blockC = g('geminiBlockC') || g('ws_blockC');
+  const parts = [
+    master && `=== 마스터 스타일 프롬프트 ===\n${master}`,
+    blockA && `=== 블록 A (도입부) ===\n${blockA}`,
+    blockB && `=== 블록 B (전개부) ===\n${blockB}`,
+    blockC && `=== 블록 C (클라이맥스) ===\n${blockC}`,
+  ].filter(Boolean).join('\n\n');
+  if (!parts.trim()) { alert('먼저 ⑧ Gemini 프롬프트 생성 단계에서 프롬프트를 생성해주세요.'); return; }
+  const msg = document.getElementById('copyFullPkg');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(parts).then(() => {
+      if (msg) { msg.textContent = '✓ 복사됨'; setTimeout(() => { msg.textContent = ''; }, 2000); }
+    }).catch(() => { _execCopy(parts); if (msg) { msg.textContent = '✓ 복사됨'; setTimeout(() => { msg.textContent = ''; }, 2000); } });
+  } else { _execCopy(parts); if (msg) { msg.textContent = '✓ 복사됨'; setTimeout(() => { msg.textContent = ''; }, 2000); } }
+}
+
+// ─── 작업공간 새로고침 (p11) ─────────────────────────────────
+function refreshWorkspace() {
+  const map = {
+    ws_dna: 'dnaResult', ws_concept: 'conceptResult',
+    ws_structure: 'structureResult', ws_master: 'geminiMaster',
+    ws_blockA: 'geminiBlockA', ws_blockB: 'geminiBlockB', ws_blockC: 'geminiBlockC'
+  };
+  Object.entries(map).forEach(([wsId, srcId]) => {
+    const src = document.getElementById(srcId);
+    const ws  = document.getElementById(wsId);
+    if (src && ws) ws.value = src.value || '';
+  });
+  const wsLyrics = document.getElementById('ws_lyrics');
+  if (wsLyrics) wsLyrics.value = document.getElementById('refinedLyricsResult')?.value
+    || document.getElementById('lyricsResult')?.value || '';
+}
+
+// STEP4: sanitizeForGemini — 레퍼런스 곡명·아티스트명 제거 (저작권 안전)
+function sanitizeForGemini(text) {
+  if (!text) return '';
+  const songs = getSongs();
+  let result = text;
+  songs.forEach(s => {
+    if (s.title) {
+      const escaped = s.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      result = result.replace(new RegExp(escaped, 'gi'), '[REFERENCE SONG]');
+    }
+    if (s.artist) {
+      const escaped = s.artist.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      result = result.replace(new RegExp(escaped, 'gi'), '[REFERENCE ARTIST]');
+    }
+  });
+  return result;
+}
+
+// STEP4: 곡 길이 → 블록 수 자동 계산
+// 30초=1, 1분=2, 2분=4, 3분=6, 4분=8, 5분=10
+function calcBlockCount(songLength) {
+  const map = {
+    '30초': 1, '1분': 2, '2분': 4, '3분': 6, '4분': 8, '5분': 10
+  };
+  for (const [key, val] of Object.entries(map)) {
+    if (songLength && songLength.startsWith(key)) return val;
+  }
+  return 10; // 기본값
+}
+
+// STEP4: 가사 파트명 기반으로 블록 배정 ([Verse], [Chorus] 등 인식)
+function getLyricsByPart(lyrics) {
+  if (!lyrics) return {};
+  const parts = {};
+  const lines = lyrics.split('\n');
+  let currentPart = 'intro';
+  let buffer = [];
+
+  lines.forEach(line => {
+    const trimmed = line.trim();
+    const partMatch = trimmed.match(/^\[?(Intro|Verse\s*\d*|Pre-?Chorus\s*\d*|Chorus\s*\d*|Bridge|Final\s+Chorus|Outro|Instrumental\s*Break)\]?:?$/i);
+    if (partMatch) {
+      if (buffer.length) parts[currentPart] = (parts[currentPart] || '') + buffer.join('\n') + '\n';
+      currentPart = partMatch[1].toLowerCase().replace(/\s+/g, '_');
+      buffer = [];
+    } else {
+      buffer.push(line);
+    }
+  });
+  if (buffer.length) parts[currentPart] = (parts[currentPart] || '') + buffer.join('\n');
+  return parts;
+}
+
+// STEP4: 파트명 기반으로 블록 A/B/C에 가사 배정
+function assignLyricsToBlocks(lyrics) {
+  const parts = getLyricsByPart(lyrics);
+  const hasPartTags = Object.keys(parts).length > 1;
+
+  if (hasPartTags) {
+    const blockA_parts = ['intro','verse','verse_1','pre-chorus','pre_chorus','pre-chorus_1','chorus','chorus_1'];
+    const blockB_parts = ['verse_2','pre-chorus_2','pre_chorus_2','chorus_2','instrumental_break','instrumental'];
+    const blockC_parts = ['bridge','final_chorus','final_chorus','outro'];
+
+    const pickParts = (keys) => Object.entries(parts)
+      .filter(([k]) => keys.some(p => k.startsWith(p)))
+      .map(([,v]) => v.trim())
+      .filter(Boolean)
+      .join('\n\n');
+
+    return {
+      a: pickParts(blockA_parts),
+      b: pickParts(blockB_parts),
+      c: pickParts(blockC_parts)
+    };
+  } else {
+    // 파트 태그 없으면 3등분
+    const lyricsLines = lyrics.split('\n').filter(l => l.trim());
+    return {
+      a: lyricsLines.slice(0, Math.floor(lyricsLines.length / 3)).join('\n'),
+      b: lyricsLines.slice(Math.floor(lyricsLines.length / 3), Math.floor(lyricsLines.length * 2/3)).join('\n'),
+      c: lyricsLines.slice(Math.floor(lyricsLines.length * 2/3)).join('\n')
+    };
+  }
+}
+
+function generateGeminiPrompts() {
+  const moods = getChecked('moodGroup');
+  const instrs = getChecked('instrGroup');
+  // STEP4: sanitize — concept/structure/lyrics에서 아티스트명·곡명 제거
+  const concept = sanitizeForGemini(document.getElementById('conceptResult').value);
+  const structure = sanitizeForGemini(document.getElementById('structureResult').value);
+  const rawLyrics = state._confirmedLyrics
+    || document.getElementById('refinedLyricsResult').value
+    || document.getElementById('lyricsResult').value;
+  const lyrics = sanitizeForGemini(rawLyrics);
+  const genre = document.getElementById('genre').value;
+  const vocal = document.getElementById('vocal').value;
+  const bpm = document.getElementById('bpm').value;
+  const bpmCustom = document.getElementById('bpmCustom').value;
+  const projectName = document.getElementById('projectName').value || '무제';
+  const songLength = document.getElementById('songLength').value;
+
+  const bpmStr = bpmCustom ? bpmCustom + ' BPM' : bpm.replace(/[()]/g, '').replace('자동 추천','72–80');
+  const moodStr = moods.join(', ') || '서정적, 감성적';
+  const instrStr = instrs.join(', ') || '피아노, 스트링';
+
+  // STEP4: 강화된 Safety 문구 (2중 방지)
+  const safety = `
+
+CRITICAL RULES:
+1. Do NOT imitate any existing artist, song, melody, or vocal style.
+2. Do NOT include real artist names, existing song titles, or copyrighted lyrics.
+3. Create a completely ORIGINAL Korean song with fresh melodic ideas.
+4. If any part sounds similar to an existing song, regenerate with different melodic approach.`;
+
+  // STEP4: GLOBAL CONTINUITY RULE (마스터 공통 규칙)
+  const continuityRule = `
+GLOBAL CONTINUITY RULE: Every block in this session must maintain the EXACT SAME:
+• Tempo: ${bpmStr}
+• Key feeling and harmonic world
+• Vocal character, timbre, and recording quality
+• Overall emotional arc trajectory
+Any block that breaks continuity must be regenerated.`;
+
+  // STEP4: 한국어 발음 지시 강화
+  const koreanPhonetics = `
+KOREAN VOCAL REQUIREMENTS:
+• All Korean lyrics must be delivered with natural, clear Korean phonetics
+• Speech rhythm must follow natural Korean language patterns
+• Avoid robotic, foreign-accented, or muffled Korean pronunciation
+• Korean vowels (아/에/이/오/우) must be crisp and distinct`;
+
+  const masterPrompt = `You are generating an original Korean ${genre} song titled "${projectName}".
+
+Style: ${moodStr}
+Genre: ${genre}
+Vocals: ${vocal} vocal, Korean language, emotionally expressive
+Tempo: ${bpmStr}
+Instrumentation: ${instrStr}
+Song length: ${songLength}
+Mood arc: begins intimate and minimal → gradually builds emotional intensity → peaks at final chorus → gentle resolution
+${continuityRule}
+${koreanPhonetics}
+
+Concept summary:
+${concept ? concept.substring(0, 400) : '(콘셉트 없음 — ⑤번 단계에서 먼저 생성하세요)'}
+
+Structure reference:
+${structure ? structure.substring(0, 400) : '(구조 없음 — ⑥번 단계에서 먼저 생성하세요)'}
+${safety}`;
+
+  // STEP4: 파트명 기반 가사 블록 배정
+  const lyricsBlocks = assignLyricsToBlocks(lyrics);
+
+  // STEP4: 수정된 블록 구조
+  // Block A: Intro + Verse 1 + Pre-Chorus 1 + Chorus 1
+  const blockA = `Original Korean ${genre} — BLOCK A: Intro + Verse 1 + Pre-Chorus 1 + Chorus 1
+
+[BLOCK A — Song opening through first chorus]
+Intro: ${instrs[0] || '피아노'} only, no vocals — establish emotional world quietly (0:00–0:15)
+Verse 1: first vocal entry, soft and intimate, close-mic warmth — storytelling begins
+Pre-Chorus 1: subtle harmonic tension building, add light percussion or bass
+Chorus 1: first emotional peak — ${moods[0] || '서정적'} hook, memorable and singable, ${instrs.slice(0,2).join(' + ') || '피아노 + 스트링'}
+
+Mood: quiet → building → first emotional release
+Instrumentation arc: minimal (${instrs[0] || '피아노'}) → fuller (add ${instrs[1] || '스트링'})
+Emotional intensity: 2/10 (Intro) → 4/10 (Verse 1) → 5/10 (Pre-Chorus) → 7/10 (Chorus)
+Tempo: ${bpmStr}
+${lyricsBlocks.a ? '\nLyrics for BLOCK A:\n' + lyricsBlocks.a : ''}
+${continuityRule}${koreanPhonetics}${safety}`;
+
+  // Block B: Verse 2 + Pre-Chorus 2 + Chorus 2 + Instrumental Break
+  const blockB = `Original Korean ${genre} — BLOCK B: Verse 2 + Pre-Chorus 2 + Chorus 2 + Instrumental Break
+
+[BLOCK B — Development and second chorus]
+Verse 2: more emotionally engaged than Verse 1 — deeper narrative, same vocal character
+Pre-Chorus 2: stronger tension than Pre-Chorus 1 — sense of inevitability
+Chorus 2: same hook as Chorus 1 but FULLER — add ${instrs[2] || '드럼'}, richer harmony
+Instrumental Break: melodic interlude, no vocals — allow emotional space before climax
+
+Mood: deeper emotional involvement → building toward climax
+Instrumentation: all instruments from Block A PLUS ${instrs.slice(2,4).join(', ') || '드럼, 어쿠스틱 기타'}
+Emotional intensity: 5/10 (Verse 2) → 6/10 (Pre-Chorus 2) → 8/10 (Chorus 2) → 5/10 (Instrumental)
+Tempo: ${bpmStr} — identical to Block A
+Continuity: match tempo, key, and vocal tone EXACTLY from Block A
+${lyricsBlocks.b ? '\nLyrics for BLOCK B:\n' + lyricsBlocks.b : ''}
+${continuityRule}${koreanPhonetics}${safety}`;
+
+  // Block C: Bridge + Final Chorus + Outro
+  const blockC = `Original Korean ${genre} — BLOCK C: Bridge + Final Chorus + Outro
+
+[BLOCK C — Climax and resolution]
+Bridge: strip back to minimal instrumentation — ${instrs[0] || '피아노'} only or a cappella — most emotionally raw moment, core lyrical message
+Final Chorus: MAXIMUM emotional release — ALL instruments (${instrStr}) at full power — vocals at peak intensity — feel earned and inevitable
+Outro: gradually fade back to ${instrs[0] || '피아노'} alone — reflective, peaceful resolution — gentle ending
+
+Mood: emotional vulnerability (Bridge) → full cathartic release (Final Chorus) → quiet reflection (Outro)
+Instrumentation: stripped (Bridge) → ALL at peak (Final Chorus) → ${instrs[0] || '피아노'} only (Outro)
+Emotional intensity: 5/10 (Bridge) → 10/10 (Final Chorus peak) → 2/10 (Outro)
+Tempo: ${bpmStr} — identical to all previous blocks
+Continuity: this is the emotional payoff of everything in Block A and B — make it feel inevitable
+${lyricsBlocks.c ? '\nLyrics for BLOCK C:\n' + lyricsBlocks.c : ''}
+${continuityRule}${koreanPhonetics}${safety}`;
+
+  document.getElementById('geminiMaster').value = masterPrompt;
+  document.getElementById('geminiBlockA').value = blockA;
+  document.getElementById('geminiBlockB').value = blockB;
+  document.getElementById('geminiBlockC').value = blockC;
+
+  // STEP4: 곡 길이 연동 블록 수 자동 계산
+  const blockCount = calcBlockCount(songLength);
+  buildTenBlocks(genre, moods, instrs, bpmStr, lyrics, safety, continuityRule, koreanPhonetics, blockCount);
+
+  // 수정 프롬프트
+  buildRevisionPrompts(safety, koreanPhonetics);
+
+  // genMode 드롭다운과 geminiMode 연동
+  const genModeEl = document.getElementById('genMode');
+  if (genModeEl) {
+    const modeVal = genModeEl.value;
+    if (modeVal === '큰 블록 3개') setGeminiMode(1);
+    else if (modeVal === '30초 단위 블록 방식' || modeVal === '30초 10블록') setGeminiMode(2);
+    else if (modeVal === '둘 다 생성') setGeminiMode(3);
+  }
+
+  // 표시 모드
+  const bigVisible = state.geminiMode === 1 || state.geminiMode === 3;
+  const tenVisible = state.geminiMode === 2 || state.geminiMode === 3;
+  document.getElementById('bigBlockSection').style.display = bigVisible ? 'block' : 'none';
+  document.getElementById('tenBlockSection').style.display = tenVisible ? 'block' : 'none';
+
+  // STEP4: 블록 수 표시 업데이트
+  const tenLabel = document.getElementById('tenBlockLabel');
+  if (tenLabel) tenLabel.textContent = `── 30초 단위 블록 방식 (${blockCount}개) ──────────────────`;
+
+  document.getElementById('geminiOutputArea').style.display = 'block';
+  saveLS();
+  markDone('p7');
+}
+
+function buildTenBlocks(genre, moods, instrs, bpmStr, lyrics, safety, continuityRule, koreanPhonetics, blockCount) {
+  blockCount = blockCount || 10;
+  const container = document.getElementById('tenBlockContainer');
+  container.innerHTML = '';
+
+  // STEP4: 블록 수에 따라 파트 동적 생성
+  // 각 블록은 30초 단위 — blockCount에 맞게 타임라인 조정
+  function genBlockDefs(n) {
+    // 대표 파트 템플릿 (최대 10개 기준)
+    const base = [
+      { part:'Intro', intensity:2, role:'악기만으로 감정 세계 열기, 보컬 없음', mood:'quiet, delicate' },
+      { part:'Verse 1 — 전반부', intensity:3, role:'보컬 첫 등장, 담담하고 가깝게', mood:'intimate, soft' },
+      { part:'Verse 1 — 후반부', intensity:4, role:'스트링 가세, 감정 조금 상승', mood:'tender, building' },
+      { part:'Chorus 1', intensity:7, role:'첫 후렴, 기억에 남는 멜로디, 감정 첫 폭발', mood:'emotional, memorable hook' },
+      { part:'Verse 2', intensity:4, role:'서사 확장, 드럼 추가, 더 풍성한 사운드', mood:'fuller, developing' },
+      { part:'Pre-Chorus 2', intensity:5, role:'긴장감 고조, 클라이맥스 전 단계', mood:'building tension' },
+      { part:'Chorus 2', intensity:8, role:'두 번째 후렴, 첫 후렴보다 강하게', mood:'more intense chorus' },
+      { part:'Bridge', intensity:5, role:'핵심 메시지, 절제된 구간 (악기 최소화)', mood:'stripped back, core message' },
+      { part:'Final Chorus + Climax', intensity:10, role:'모든 악기 총동원, 감정 최대 폭발', mood:'peak emotional release, full orchestration' },
+      { part:'Outro', intensity:2, role:'피아노로 회귀, 조용한 여운', mood:'peaceful resolution, fading' }
+    ];
+
+    // n개 블록에 맞게 선택 (인덱스 균등 배분)
+    const selected = [];
+    for (let i = 0; i < n; i++) {
+      const idx = Math.round(i * (base.length - 1) / Math.max(n - 1, 1));
+      selected.push({ ...base[Math.min(idx, base.length-1)], num: String(i+1).padStart(2,'0') });
+    }
+    return selected;
+  }
+
+  const blockDefs = genBlockDefs(blockCount);
+  const lyricsLines = lyrics ? lyrics.split('\n').filter(l => l.trim()) : [];
+
+  blockDefs.forEach((b, idx) => {
+    const lyricsSlice = lyricsLines.slice(
+      Math.floor(lyricsLines.length * idx / blockCount),
+      Math.floor(lyricsLines.length * (idx+1) / blockCount)
+    ).join('\n');
+
+    const startSec = idx * 30;
+    const endSec = (idx + 1) * 30;
+    const fmt = s => `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+    const timeStr = `${fmt(startSec)}–${fmt(endSec)}`;
+
+    const taId = `tenBlock${b.num}`;
+    const copyId = `copyTen${b.num}`;
+    const content = `Original Korean ${genre} — BLOCK ${b.num}/${blockCount} (${timeStr})
+Section: ${b.part}
+Role: ${b.role}
+Mood: ${b.mood}
+Emotional intensity: ${b.intensity}/10
+Tempo: ${bpmStr}
+${idx === 0 ? `First block — establish the emotional world. Instrumentation: ${instrs[0] || '피아노'} only.` : `Continuity: maintain EXACT tempo, key, vocal character, and harmonic world from previous block.`}
+${lyricsSlice ? '\nLyrics for this section:\n' + lyricsSlice : ''}
+${continuityRule || ''}${koreanPhonetics || ''}${safety}`;
+
+    const ta = document.createElement('div');
+    ta.className = 'prompt-block';
+    ta.innerHTML = `
+      <div class="prompt-block-header">
+        <span class="prompt-block-title">블록 ${b.num} — ${b.part} (${timeStr})</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="copy-msg" id="${copyId}">✓ 복사됨</span>
+          <button class="btn btn-ghost" onclick="copyText('${taId}','${copyId}')">📋 Gemini 블록 ${b.num} 복사</button>
+        </div>
+      </div>
+      <textarea id="${taId}" style="min-height:130px">${content}</textarea>`;
+    container.appendChild(ta);
+  });
+}
+
+function buildRevisionPrompts(safety) {
+  const revisions = [
+    { label:'후렴이 약함 / 기억에 안 남음', prompt:`Regenerate the chorus to be more memorable and emotionally powerful. The hook should be instantly recognizable and easy to sing along to. Keep all other elements the same.${safety}` },
+    { label:'보컬 톤이 이전 블록과 달라짐', prompt:`Regenerate maintaining the exact same vocal tone, style, and timbre as the previous block. The singer must sound identical — same emotional quality, same recording feel. Only the musical content should change.${safety}` },
+    { label:'한국어 발음이 어색함', prompt:`Regenerate with improved Korean pronunciation clarity. All Korean lyrics must be delivered naturally with proper Korean phonetics and speech rhythm. Avoid any robotic or foreign-accented Korean delivery.${safety}` },
+    { label:'너무 밋밋함 / 감동이 없음', prompt:`Increase emotional depth and dynamic range. Add more expressive phrasing, subtle harmonic richness, and rhythmic variation. The music should feel more moving and emotionally resonant.${safety}` },
+    { label:'너무 과함 / 너무 강렬함', prompt:`Reduce intensity and instrumentation significantly. Pull back to a more restrained, intimate expression. Less is more — keep it understated and emotionally subtle.${safety}` },
+    { label:'앞뒤 블록과 연결이 어색함', prompt:`Ensure seamless continuity with the previous block. The beginning should feel like a natural continuation — same tempo, same key feeling, same emotional momentum, same vocal character.${safety}` },
+    { label:'기존 곡과 너무 비슷함', prompt:`This section sounds too similar to existing songs. Regenerate with a more unique and original melodic approach. Find unexpected chord progressions and fresh melodic ideas that don't resemble any known songs.${safety}` },
+    { label:'악기가 너무 복잡함', prompt:`Simplify the instrumentation significantly. Strip back to only the essential instruments. Focus on clarity and breathing space in the arrangement.${safety}` },
+    { label:'감정선이 갑자기 꺾임', prompt:`Smooth out the emotional arc of this section. The emotional intensity should change gradually, not abruptly. Maintain a consistent emotional trajectory that flows naturally from the previous section.${safety}` }
+  ];
+
+  const container = document.getElementById('revisionPrompts');
+  container.innerHTML = '';
+  revisions.forEach((rev, i) => {
+    const taId = `revTA${i}`;
+    const copyId = `copyRev${i}`;
+    const block = document.createElement('div');
+    block.className = 'prompt-block';
+    block.innerHTML = `
+      <div class="prompt-block-header">
+        <span class="prompt-block-title">수정 ${i+1}: ${rev.label}</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="copy-msg" id="${copyId}">✓ 복사됨</span>
+          <button class="btn btn-ghost" onclick="copyText('${taId}','${copyId}')">📋 복사</button>
+        </div>
+      </div>
+      <textarea id="${taId}" style="min-height:80px">${rev.prompt}</textarea>`;
+    container.appendChild(block);
+  });
+}
+
+// ══════════════════════════════════════════════
+// EVALUATION
+// ══════════════════════════════════════════════
+const ISSUES = [
+  '후렴 약함','보컬 톤 불일치','한국어 발음 어색','너무 밋밋함',
+  '너무 과함','앞뒤 연결 어색','기존 곡 느낌 남','악기 과다','감정선 단절'
+];
+const ISSUE_FIXES = {
+  '후렴 약함': 'Regenerate with a stronger, more memorable chorus hook.',
+  '보컬 톤 불일치': 'Maintain identical vocal tone and style as previous block.',
+  '한국어 발음 어색': 'Improve Korean pronunciation — natural phonetics, clear speech rhythm.',
+  '너무 밋밋함': 'Increase emotional depth and dynamic variation throughout.',
+  '너무 과함': 'Reduce intensity. Simplify to essential instruments. More restrained.',
+  '앞뒤 연결 어색': 'Smoother transition — match tempo, key, and emotional momentum of previous block.',
+  '기존 곡 느낌 남': 'More original melodic approach. Avoid resemblance to any existing songs.',
+  '악기 과다': 'Simplify instrumentation. Strip back to core instruments only.',
+  '감정선 단절': 'Smooth out emotional arc. No abrupt emotional shifts.'
+};
+
+function addEval(blockName = '', verLabel = '') {
+  const list = document.getElementById('evalList');
+  const div = document.createElement('div');
+  div.className = 'eval-row';
+  div.innerHTML = `
+    <div class="eval-header">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <input type="text" placeholder="블록 이름 (예: 블록 A)" style="width:150px" class="ev-name" value="${blockName}">
+        <input type="text" placeholder="버전 (예: v1)" style="width:80px" class="ev-ver" value="${verLabel}">
+      </div>
+      <button class="btn btn-danger" onclick="this.closest('.eval-row').remove()">삭제</button>
+    </div>
+    <label>평점</label>
+    <div class="star-row">
+      ${[1,2,3,4,5].map(n=>`<span class="star" data-val="${n}" onclick="setStar(this)">☆</span>`).join('')}
+    </div>
+    <label>문제점 (복수 선택)</label>
+    <div class="issue-checks">
+      ${ISSUES.map(issue=>`<label class="issue-check"><input type="checkbox" value="${issue}" onchange="toggleIssue(this)">${issue}</label>`).join('')}
+    </div>
+    <div class="form-group" style="margin-top:8px">
+      <label>메모</label>
+      <textarea class="ev-memo" rows="2" placeholder="생성 결과에 대한 자유로운 기록"></textarea>
+    </div>`;
+  list.appendChild(div);
+}
+
+function addEvalPreset(type) {
+  if (type === 'big') {
+    ['블록 A (도입부)', '블록 B (전개부)', '블록 C (클라이맥스)'].forEach((name, i) => addEval(name, `v1`));
+  } else {
+    for (let i = 1; i <= 10; i++) {
+      addEval(`블록 ${String(i).padStart(2,'0')}`, `v1`);
+    }
+  }
+}
+
+function setStar(el) {
+  const row = el.closest('.star-row');
+  const val = parseInt(el.dataset.val);
+  row.querySelectorAll('.star').forEach((s, i) => {
+    s.textContent = i < val ? '★' : '☆';
+    s.classList.toggle('on', i < val);
+  });
+  generateRevision();
+}
+
+// B2 수정: onclick→onchange 이벤트로 교체, 인자를 checkbox input으로 변경
+function toggleIssue(input) {
+  const el = input.closest('.issue-check');
+  el.classList.toggle('selected', input.checked);
+  generateRevision();
+}
+
+function generateRevision() {
+  const checked = Array.from(document.querySelectorAll('.issue-check input:checked')).map(i => i.value);
+  if (!checked.length) {
+    document.getElementById('autoRevisionCard').style.display = 'none';
+    return;
+  }
+  const safety = `\n\nDo not imitate any existing artist, song, melody, lyrics, or vocal style. Create a completely original Korean song.`;
+  const fixes = checked.map(issue => ISSUE_FIXES[issue] || issue).join('\n');
+  document.getElementById('revisionOutput').value = `Regenerate this section with the following corrections:\n\n${fixes}${safety}`;
+  document.getElementById('autoRevisionCard').style.display = 'block';
+}
+
+// ══════════════════════════════════════════════
+// VERSION
+// ══════════════════════════════════════════════
+const VERSION_LABELS = {
+  dna:'DNA분석', concept:'콘셉트', structure:'구조', lyrics:'가사',
+  refinedLyrics:'보정가사', gemini:'Gemini프롬프트', revision:'수정프롬프트'
+};
+
+// B4 수정: saveVersion(type, textareaId, btn) 형태로 변경 — 전역 event.target 의존 제거
+function saveVersion(type, textareaId, btn) {
+  const content = document.getElementById(textareaId)?.value || '';
+  if (!content.trim()) { alert('저장할 내용이 없습니다.'); return; }
+  const v = {
+    id: Date.now(), type,
+    label: VERSION_LABELS[type] || type,
+    content,
+    time: new Date().toLocaleString('ko-KR')
+  };
+  state.versions.unshift(v);
+  renderVersions();
+  saveLS();
+  // B4 수정: btn 파라미터로 직접 받아 처리 (event.target 사용 안 함)
+  if (btn) {
+    const orig = btn.textContent;
+    btn.textContent = '✓ 저장됨';
+    setTimeout(() => btn.textContent = orig, 1500);
+  }
+}
+
+function renderVersions() {
+  const list = document.getElementById('versionList');
+  if (!state.versions.length) {
+    list.innerHTML = '<div style="color:var(--text3);font-size:13px;text-align:center;padding:40px">아직 저장된 버전이 없습니다.<br>각 단계에서 "버전 저장" 버튼을 눌러 기록하세요.</div>';
+    return;
+  }
+  // count by type
+  const counts = {};
+  const orderedById = [...state.versions].reverse(); // oldest first for counting
+  const versionNums = {};
+  orderedById.forEach(v => {
+    counts[v.type] = (counts[v.type] || 0) + 1;
+    versionNums[v.id] = counts[v.type];
+  });
+
+  list.innerHTML = state.versions.map(v => `
+    <div class="version-item">
+      <div><span class="version-tag">${v.label} v${versionNums[v.id] || '?'}</span></div>
+      <div style="flex:1">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:3px">${v.time}</div>
+        <div style="font-size:11.5px;color:var(--text3);white-space:pre-wrap;max-height:55px;overflow:hidden">${v.content.substring(0,120)}${v.content.length > 120 ? '…' : ''}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <button class="btn btn-ghost" onclick="copyVC(${v.id})">복사</button>
+        <button class="btn btn-danger" onclick="delV(${v.id})">삭제</button>
+      </div>
+    </div>`).join('');
+}
+
+function copyVC(id) {
+  const v = state.versions.find(v => v.id === id);
+  if (v) navigator.clipboard.writeText(v.content).then(() => alert('복사됨'));
+}
+
+function delV(id) {
+  state.versions = state.versions.filter(v => v.id !== id);
+  renderVersions(); saveLS();
+}
+
+// ══════════════════════════════════════════════
+// COPY
+// ══════════════════════════════════════════════
+function copyText(taId, msgId) {
+  const val = document.getElementById(taId)?.value;
+  if (!val) return;
+  navigator.clipboard.writeText(val).then(() => {
+    const msg = document.getElementById(msgId);
+    if (msg) { msg.classList.add('show'); setTimeout(() => msg.classList.remove('show'), 1800); }
+  });
+}
+
+function show(taId, text) {
+  const el = document.getElementById(taId);
+  if (el) el.value = text;
+}
+
+// ══════════════════════════════════════════════
+// EXPORT
+// ══════════════════════════════════════════════
+function exportMarkdown() {
+  const p = state.project;
+  const songs = getSongs();
+  let md = `# ${p.name || '무제 프로젝트'} — AI Song Studio v2\n\n`;
+  md += `> 제작자: ${p.author || '–'} | 목표 길이: ${p.songLength || '–'} | 작성일: ${new Date().toLocaleDateString('ko-KR')}\n\n`;
+  md += `---\n\n## 📋 프로젝트 설정\n- 곡 수: ${p.songCount || '–'}\n- 목적: ${(p.purposes||[]).join(', ') || '–'}\n- 생성 방식: ${p.genMode || '–'}\n\n`;
+  if (p.memo) md += `### 메모\n${p.memo}\n\n`;
+
+  if (songs.length) {
+    md += `---\n\n## 🎵 레퍼런스 노래\n`;
+    songs.forEach((s,i) => {
+      md += `### ${i+1}. ${s.title} — ${s.artist}\n`;
+      if (s.reason) md += `- 좋아하는 이유: ${s.reason}\n`;
+      if (s.fav) md += `- 특히 좋은 부분: ${s.fav}\n`;
+      if (s.avoid) md += `- 피할 요소: ${s.avoid}\n`;
+      md += '\n';
+    });
+  }
+
+  const sections = [
+    ['🧬 음악 DNA 분석', 'dnaResult'],
+    ['💡 곡 콘셉트', 'conceptResult'],
+    ['🏗️ 곡 구조', 'structureResult'],
+    ['🎵 가사', 'lyricsResult'],
+    ['✨ 보정 가사', 'refinedLyricsResult'],
+    ['🎯 Gemini 마스터 프롬프트', 'geminiMaster'],
+    ['🅐 블록 A', 'geminiBlockA'],
+    ['🅑 블록 B', 'geminiBlockB'],
+    ['🅒 블록 C', 'geminiBlockC'],
+  ];
+  sections.forEach(([title, id]) => {
+    const val = document.getElementById(id)?.value;
+    if (val) md += `---\n\n## ${title}\n\n\`\`\`\n${val}\n\`\`\`\n\n`;
+  });
+
+  if (state.versions.length) {
+    md += `---\n\n## 📚 버전 기록\n\n`;
+    state.versions.forEach(v => {
+      md += `### ${v.label} — ${v.time}\n\n${v.content}\n\n---\n\n`;
+    });
+  }
+
+  downloadFile(`${p.name || 'song_project'}.md`, md, 'text/markdown');
+}
+
+function exportJSON() {
+  downloadFile(`${state.project.name || 'song_project'}.json`, JSON.stringify(collectAllData(), null, 2), 'application/json');
+}
+
+function exportGeminiTXT() {
+  const master = document.getElementById('geminiMaster')?.value || '';
+  const blockA = document.getElementById('geminiBlockA')?.value || '';
+  const blockB = document.getElementById('geminiBlockB')?.value || '';
+  const blockC = document.getElementById('geminiBlockC')?.value || '';
+
+  // also collect 10 blocks if present
+  let tenBlocks = '';
+  for (let i = 1; i <= 10; i++) {
+    const val = document.getElementById(`tenBlock${String(i).padStart(2,'0')}`)?.value;
+    if (val) tenBlocks += `\n\n=== 30초 블록 ${String(i).padStart(2,'0')} ===\n${val}`;
+  }
+
+  const content = `=== 마스터 스타일 프롬프트 ===\n${master}\n\n=== 큰 블록 A ===\n${blockA}\n\n=== 큰 블록 B ===\n${blockB}\n\n=== 큰 블록 C ===\n${blockC}${tenBlocks}`;
+  downloadFile(`${state.project.name || 'song'}_gemini_prompts.txt`, content, 'text/plain');
+}
+
+function exportLyricsTXT() {
+  const refined = document.getElementById('refinedLyricsResult')?.value || '';
+  const main = document.getElementById('lyricsResult')?.value || '';
+  const val = refined || main;
+  downloadFile(`${state.project.name || 'song'}_lyrics.txt`, val, 'text/plain');
+}
+
+function exportRevisionTXT() {
+  const rev = document.getElementById('revisionOutput')?.value || '';
+  let revisionAll = rev ? `=== 자동 생성 수정 프롬프트 ===\n${rev}\n\n` : '';
+  const items = document.querySelectorAll('[id^="revTA"]');
+  items.forEach((el, i) => {
+    revisionAll += `=== 수정 프롬프트 ${i+1} ===\n${el.value}\n\n`;
+  });
+  downloadFile(`${state.project.name || 'song'}_revisions.txt`, revisionAll || '(수정 프롬프트 없음)', 'text/plain');
+}
+
+function exportAllPrompts() {
+  const sections = [
+    ['DNA 분석 프롬프트', 'dnaPromptTA'],
+    ['콘셉트 프롬프트', 'conceptPromptTA'],
+    ['구조 프롬프트', 'structPromptTA'],
+    ['가사 프롬프트', 'lyricsPromptTA'],
+    ['가사 보정 프롬프트', 'refinementPromptTA'],
+    ['Gemini 마스터', 'geminiMaster'],
+    ['Gemini 블록 A', 'geminiBlockA'],
+    ['Gemini 블록 B', 'geminiBlockB'],
+    ['Gemini 블록 C', 'geminiBlockC'],
+  ];
+  let content = '';
+  sections.forEach(([title, id]) => {
+    const val = document.getElementById(id)?.value;
+    if (val) content += `${'═'.repeat(50)}\n${title}\n${'═'.repeat(50)}\n${val}\n\n`;
+  });
+  downloadFile(`${state.project.name || 'song'}_all_prompts.txt`, content || '(프롬프트 없음)', 'text/plain');
+}
+
+function collectAllData() {
+  return {
+    project: state.project,
+    inputs: {
+      songs: getSongs(),
+      styleText: document.getElementById('styleText')?.value,
+      directLyrics: document.getElementById('directLyrics')?.value,
+      fileContent: document.getElementById('fileContent')?.value
+    },
+    settings: {
+      moods: getChecked('moodGroup'),
+      genre: document.getElementById('genre')?.value,
+      vocal: document.getElementById('vocal')?.value,
+      bpm: document.getElementById('bpm')?.value,
+      bpmCustom: document.getElementById('bpmCustom')?.value,
+      instruments: getChecked('instrGroup'),
+      themes: getChecked('themeGroup'),
+      extra: document.getElementById('extraDirections')?.value
+    },
+    outputs: {
+      dnaPrompt: document.getElementById('dnaPromptTA')?.value,
+      dna: document.getElementById('dnaResult')?.value,
+      conceptPrompt: document.getElementById('conceptPromptTA')?.value,
+      concept: document.getElementById('conceptResult')?.value,
+      structurePrompt: document.getElementById('structPromptTA')?.value,
+      structure: document.getElementById('structureResult')?.value,
+      lyricsPrompt: document.getElementById('lyricsPromptTA')?.value,
+      lyrics: document.getElementById('lyricsResult')?.value,
+      refinementPrompt: document.getElementById('refinementPromptTA')?.value,
+      refinedLyrics: document.getElementById('refinedLyricsResult')?.value,
+      geminiMaster: document.getElementById('geminiMaster')?.value,
+      geminiA: document.getElementById('geminiBlockA')?.value,
+      geminiB: document.getElementById('geminiBlockB')?.value,
+      geminiC: document.getElementById('geminiBlockC')?.value
+    },
+    versions: state.versions,
+    exportedAt: new Date().toISOString()
+  };
+}
+
+function importJSON(input) {
+  if (!input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      // songList 중복 방지: 먼저 초기화
+      document.getElementById('songList').innerHTML = '';
+      // B8 수정: applyDataToUI()로 통합 — 체크박스·select 포함 완전 복원
+      applyDataToUI(data);
+      saveLS();
+      alert('✅ 불러오기 완료! 모든 설정이 복원되었습니다.');
+    } catch(err) {
+      alert('JSON 파일을 읽을 수 없습니다: ' + err.message);
+    }
+  };
+  reader.readAsText(input.files[0]);
+}
+
+// B5 수정: URL.createObjectURL 후 revokeObjectURL 호출하여 메모리 누수 방지
+function downloadFile(filename, content, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 100);
+}
+
+// ══════════════════════════════════════════════
+// LOCALSTORAGE
+// ══════════════════════════════════════════════
+
+// B8 수정: applyDataToUI(data) 신설 — loadLS & importJSON 공통 복원 로직
+function applyDataToUI(data) {
+  if (!data) return;
+
+  // 프로젝트 기본 정보
+  if (data.project) {
+    state.project = data.project;
+    const p = data.project;
+    if (p.name !== undefined)   document.getElementById('projectName').value = p.name;
+    if (p.author !== undefined) document.getElementById('projectAuthor').value = p.author;
+    if (p.memo !== undefined)   document.getElementById('projectMemo').value = p.memo;
+    if (p.songCount) {
+      const el = document.getElementById('songCount');
+      if ([...el.options].some(o => o.value === p.songCount)) el.value = p.songCount;
+    }
+    if (p.songLength) {
+      const el = document.getElementById('songLength');
+      if ([...el.options].some(o => o.value === p.songLength)) el.value = p.songLength;
+    }
+    if (p.genMode) {
+      const el = document.getElementById('genMode');
+      if ([...el.options].some(o => o.value === p.genMode)) el.value = p.genMode;
+    }
+    // 목적 체크박스 복원
+    if (p.purposes?.length) {
+      document.querySelectorAll('#purposeGroup input').forEach(input => {
+        const checked = p.purposes.includes(input.value);
+        input.checked = checked;
+        input.closest('.check-pill, .vci-pill, .neg-pill')?.classList.toggle('selected', checked);
+      });
+    }
+  }
+
+  // 입력 탭 데이터
+  if (data.inputs) {
+    const inp = data.inputs;
+    // 레퍼런스 노래 목록 복원 (중복 방지: 먼저 초기화)
+    if (inp.songs?.length) {
+      document.getElementById('songList').innerHTML = '';
+      inp.songs.forEach(s => addSong(s));
+    }
+    if (inp.styleText !== undefined)    document.getElementById('styleText').value = inp.styleText || '';
+    if (inp.directLyrics !== undefined) document.getElementById('directLyrics').value = inp.directLyrics || '';
+    if (inp.fileContent !== undefined)  document.getElementById('fileContent').value = inp.fileContent || '';
+  }
+
+  // 설정 (체크박스·select 포함)
+  if (data.settings) {
+    const s = data.settings;
+    // 체크박스 그룹 복원
+    const checkGroupMap = {
+      moodGroup: s.moods,
+      instrGroup: s.instruments,
+      themeGroup: s.themes
+    };
+    Object.entries(checkGroupMap).forEach(([groupId, values]) => {
+      if (!values?.length) return;
+      document.querySelectorAll(`#${groupId} input`).forEach(input => {
+        const checked = values.includes(input.value);
+        input.checked = checked;
+        input.closest('.check-pill, .vci-pill, .neg-pill')?.classList.toggle('selected', checked);
+      });
+    });
+    // select 복원
+    const selectMap = {
+      genre: s.genre,
+      vocal: s.vocal,
+      bpm: s.bpm
+    };
+    Object.entries(selectMap).forEach(([id, val]) => {
+      if (!val) return;
+      const el = document.getElementById(id);
+      if (el && [...el.options].some(o => o.value === val)) el.value = val;
+    });
+    if (s.bpmCustom !== undefined) document.getElementById('bpmCustom').value = s.bpmCustom || '';
+    if (s.extra !== undefined)     document.getElementById('extraDirections').value = s.extra || '';
+  }
+
+  // 출력 결과 복원
+  if (data.outputs) {
+    const map = {
+      dna:           'dnaResult',
+      concept:       'conceptResult',
+      structure:     'structureResult',
+      lyrics:        'lyricsResult',
+      refinedLyrics: 'refinedLyricsResult',
+      geminiMaster:  'geminiMaster',
+      geminiA:       'geminiBlockA',
+      geminiB:       'geminiBlockB',
+      geminiC:       'geminiBlockC',
+      dnaPrompt:     'dnaPromptTA',
+      conceptPrompt: 'conceptPromptTA',
+      structurePrompt:'structPromptTA',
+      lyricsPrompt:  'lyricsPromptTA',
+      refinementPrompt:'refinementPromptTA'
+    };
+    Object.entries(map).forEach(([key, id]) => {
+      if (data.outputs[key] !== undefined) {
+        const el = document.getElementById(id);
+        if (el) el.value = data.outputs[key] || '';
+      }
+    });
+    // 프롬프트 블록 표시
+    if (data.outputs.dnaPrompt)         document.getElementById('dnaPromptBlock').style.display = 'block';
+    if (data.outputs.conceptPrompt)     document.getElementById('conceptPromptBlock').style.display = 'block';
+    if (data.outputs.structurePrompt)   document.getElementById('structPromptBlock').style.display = 'block';
+    if (data.outputs.lyricsPrompt)      document.getElementById('lyricsPromptBlock').style.display = 'block';
+    if (data.outputs.refinementPrompt)  document.getElementById('refinementPromptBlock').style.display = 'block';
+    if (data.outputs.geminiMaster)      document.getElementById('geminiOutputArea').style.display = 'block';
+  }
+
+  // 버전 히스토리
+  if (data.versions) {
+    state.versions = data.versions;
+    renderVersions();
+  }
+}
+
+function saveLS() {
+  // saveLS()를 직접 호출하는 곳(버전 저장, importJSON 등)은 즉시 저장
+  pruneVersions();
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(collectAllData()));
+    const timeStr = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+    setAutosaveStatus('saved', timeStr);
+  } catch(e) {
+    setAutosaveStatus('warn');
+  }
+}
+
+function loadLS() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    // songList 중복 방지: 먼저 초기화
+    document.getElementById('songList').innerHTML = '';
+    applyDataToUI(data);
+    // 저장 시각 표시
+    const timeStr = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+    setAutosaveStatus('saved', timeStr);
+  } catch(e) {}
+}
+
+function clearAll() {
+  if (!confirm('모든 데이터를 삭제합니다. 먼저 JSON으로 백업하세요.\n계속하시겠습니까?')) return;
+  localStorage.removeItem(LS_KEY);
+  location.reload();
+}
+
+// ══════════════════════════════════════════════
+// EXAMPLE DATA
+// ══════════════════════════════════════════════
+function loadExample() {
+  document.getElementById('projectName').value = '접어둔 계절';
+  document.getElementById('projectAuthor').value = '뀨';
+  document.getElementById('projectMemo').value = '오랜 시간이 지나도 가끔 생각나는 사람에 대한 노래. 슬프지만 아름다운 기억. 담담하게 시작해서 마지막 후렴에서 폭발하는 구조.';
+  document.getElementById('songLength').value = '4분 (240초)';
+  document.getElementById('genMode').value = '둘 다 생성';
+
+  document.getElementById('songList').innerHTML = '';
+  [
+    { title:'소나기', artist:'김장훈', reason:'잔잔하고 슬픈 감성, 절제된 감정', fav:'후반부 감정 고조 방식', avoid:'창법 직접 모방' },
+    { title:'honey', artist:'김장훈', reason:'절제된 감정 표현', fav:'후렴의 단순하고 기억나는 멜로디', avoid:'리듬 패턴 모방' },
+    { title:'안녕이라고 말하지마', artist:'다비치', reason:'이별 후 담담함', fav:'화음 구성', avoid:'멜로디 라인 유사성' },
+    { title:'타임캡슐', artist:'다비치', reason:'시간의 흐름과 그리움', fav:'가사 서사', avoid:'편곡 스타일 모방' }
+  ].forEach(s => addSong(s));
+
+  ['잔잔한','슬픈','담담한','후반부 고조형','그리운'].forEach(v => {
+    const input = document.querySelector(`#moodGroup input[value="${v}"]`);
+    if (input) { input.checked = true; input.closest('.check-pill, .vci-pill, .neg-pill')?.classList.add('selected'); }
+  });
+  ['피아노','어쿠스틱 기타','스트링','드럼'].forEach(v => {
+    const input = document.querySelector(`#instrGroup input[value="${v}"]`);
+    if (input) { input.checked = true; input.closest('.check-pill, .vci-pill, .neg-pill')?.classList.add('selected'); }
+  });
+  ['회상','그리움','재출발'].forEach(v => {
+    const input = document.querySelector(`#themeGroup input[value="${v}"]`);
+    if (input) { input.checked = true; input.closest('.check-pill, .vci-pill, .neg-pill')?.classList.add('selected'); }
+  });
+
+  document.getElementById('genre').value = '피아노 발라드';
+  document.getElementById('vocal').value = '여성';
+  document.getElementById('bpm').value = '70~76 (느린 발라드)';
+  document.getElementById('extraDirections').value = '1절은 피아노와 보컬만으로 조용히 시작, 마지막 후렴에서 모든 악기가 터지는 구조';
+  document.getElementById('styleText').value = '잔잔하고 슬픈 한국어 감성 팝 발라드. 담담하게 시작해서 마지막 후렴에서 크게 고조되는 구조. 피아노가 중심이 되고 스트링이 감정을 받쳐주는 사운드.';
+
+  // 목적 체크
+  const purposeInput = document.querySelector('#purposeGroup input[value="개인 감상"]');
+  if (purposeInput) { purposeInput.checked = true; purposeInput.closest('.check-pill, .vci-pill, .neg-pill')?.classList.add('selected'); }
+
+  saveProject();
+  alert('✅ 예시 데이터가 입력되었습니다!');
+}
+
+// ══════════════════════════════════════════════
+// FILE READER
+// ══════════════════════════════════════════════
+document.getElementById('fileInput').addEventListener('change', function() {
+  if (!this.files[0]) return;
+  // B1 수정: FileReader 중복 생성 제거 (하나만 사용)
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('fileContent').value = e.target.result;
+    saveLS(); // 파일 내용도 자동저장
+  };
+  reader.readAsText(this.files[0]);
+});
+
+// ══════════════════════════════════════════════
+// FILE 서브탭 전환
+// ══════════════════════════════════════════════
+document.querySelectorAll('#mode-file [data-submode]').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('#mode-file [data-submode]').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const mode = tab.dataset.submode;
+    document.getElementById('subPanel-file').style.display = (mode === 'text-file') ? 'block' : 'none';
+    document.getElementById('subPanel-photo').style.display = (mode === 'photo') ? 'block' : 'none';
+  });
+});
+
+// ══════════════════════════════════════════════
+// PHOTO OCR — 이미지 전처리 + Claude API / Tesseract 자동 전환
+// ══════════════════════════════════════════════
+
+let photoFiles = []; // { file, dataUrl, processedDataUrl }
+
+// ─── 드래그앤드롭 지원 ─────────────────────────────────────────
+const dropZone = document.getElementById('photoDropZone');
+if (dropZone) {
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    handlePhotoFiles(e.dataTransfer.files);
+  });
+}
+
+// ─── 모드 감지: Claude.ai 아티팩트 여부 ───────────────────────
+function isArtifactMode() {
+  try {
+    return window.location.hostname.includes('claude.ai') ||
+           window.location.hostname.includes('anthropic.com') ||
+           window.parent !== window;
+  } catch(e) { return true; } // 접근 오류 = iframe = 아티팩트 가능성
+}
+
+function updateModeBadge() {
+  const badge = document.getElementById('ocrModeBadge');
+  if (!badge) return;
+  if (isArtifactMode()) {
+    badge.textContent = '● Claude Vision (API)';
+    badge.className = 'mode-badge';
+  } else {
+    badge.textContent = '● Tesseract.js (로컬 OCR)';
+    badge.className = 'mode-badge tess';
+  }
+}
+
+// ─── 이미지 전처리 (Canvas 기반) ──────────────────────────────
+async function preprocessImage(dataUrl) {
+  const gray     = document.getElementById('preprocGray')?.checked ?? true;
+  const contrast = parseFloat(document.getElementById('preprocContrast')?.value ?? 160) / 100;
+  const bright   = parseInt(document.getElementById('preprocBright')?.value ?? 0);
+  const thresh   = parseInt(document.getElementById('preprocThresh')?.value ?? 0);
+
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      // 해상도 업스케일 (Tesseract 인식률 향상)
+      const scale = Math.min(3, Math.max(1, 2400 / Math.max(img.width, img.height)));
+      const canvas = document.createElement('canvas');
+      canvas.width  = img.width  * scale;
+      canvas.height = img.height * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const d = imageData.data;
+      const intercept = 128 * (1 - contrast);
+
+      for (let i = 0; i < d.length; i += 4) {
+        let r = d[i], g = d[i+1], b = d[i+2];
+        // 1. 흑백
+        if (gray) { const lum = 0.299*r + 0.587*g + 0.114*b; r = g = b = lum; }
+        // 2. 밝기
+        r = Math.min(255, Math.max(0, r + bright));
+        g = Math.min(255, Math.max(0, g + bright));
+        b = Math.min(255, Math.max(0, b + bright));
+        // 3. 대비
+        r = Math.min(255, Math.max(0, r * contrast + intercept));
+        g = Math.min(255, Math.max(0, g * contrast + intercept));
+        b = Math.min(255, Math.max(0, b * contrast + intercept));
+        // 4. 이진화
+        if (thresh > 0) { const v = (0.299*r+0.587*g+0.114*b) > thresh ? 255 : 0; r = g = b = v; }
+        d[i] = r; d[i+1] = g; d[i+2] = b;
+      }
+      ctx.putImageData(imageData, 0, 0);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
+
+// ─── 전처리 미리보기 ──────────────────────────────────────────
+async function updatePreprocPreview() {
+  if (!photoFiles.length) return;
+  const processed = await preprocessImage(photoFiles[0].dataUrl);
+  const origImg   = document.getElementById('preprocOrigImg');
+  const resultImg = document.getElementById('preprocResultImg');
+  const grid      = document.getElementById('preprocPreviewGrid');
+  if (origImg)   origImg.src   = photoFiles[0].dataUrl;
+  if (resultImg) resultImg.src = processed;
+  if (grid) grid.style.display = 'flex';
+}
+
+// ─── 파일 핸들 ────────────────────────────────────────────────
+function handlePhotoFiles(files) {
+  const imageFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+  const remaining  = 10 - photoFiles.length;
+  imageFiles.slice(0, remaining).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      photoFiles.push({ file, dataUrl: e.target.result, processedDataUrl: null });
+      renderPhotoPreview();
+    };
+    reader.readAsDataURL(file);
+  });
+  setTimeout(() => {
+    const panel = document.getElementById('preprocPanel');
+    if (panel && photoFiles.length) { panel.style.display = 'block'; updatePreprocPreview(); }
+    updateModeBadge();
+  }, 300);
+}
+
+function renderPhotoPreview() {
+  const grid = document.getElementById('photoPreviewGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  photoFiles.forEach((item, idx) => {
+    const div = document.createElement('div');
+    div.className = 'photo-preview-item';
+    div.innerHTML = `
+      <img src="${item.dataUrl}" alt="사진 ${idx+1}">
+      <button class="ppi-remove" onclick="removePhoto(${idx})" title="삭제">✕</button>
+      <div class="ppi-status">${idx+1}번</div>`;
+    grid.appendChild(div);
+  });
+}
+
+function removePhoto(idx) {
+  photoFiles.splice(idx, 1);
+  renderPhotoPreview();
+  if (!photoFiles.length) {
+    const p = document.getElementById('preprocPanel');
+    if (p) p.style.display = 'none';
+  } else updatePreprocPreview();
+}
+
+function clearPhotos() {
+  photoFiles = [];
+  renderPhotoPreview();
+  const els = ['preprocPanel','extractEditBox','photoLyricsResultArea'];
+  els.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+  document.querySelectorAll('#photoExtractedText').forEach(ta => { ta.value = ''; });
+  const res = document.getElementById('photoLyricsResult'); if (res) res.value = '';
+  const prog = document.getElementById('photoProgress'); if (prog) prog.classList.remove('active');
+  const pg = document.getElementById('preprocPreviewGrid'); if (pg) pg.style.display = 'none';
+}
+
+// ─── 추출 텍스트 설정 (UI 동기화) ────────────────────────────
+function setExtractedText(text) {
+  document.querySelectorAll('#photoExtractedText').forEach(ta => { ta.value = text; });
+  const box = document.getElementById('extractEditBox');
+  if (box) box.style.display = 'block';
+  const counter = document.getElementById('extractCharCount');
+  if (counter) counter.textContent = text.length + '자';
+  // 실시간 글자수
+  document.querySelectorAll('#photoExtractedText').forEach(ta => {
+    ta.oninput = () => {
+      if (counter) counter.textContent = ta.value.length + '자';
+      document.querySelectorAll('#photoExtractedText').forEach(t => { if (t !== ta) t.value = ta.value; });
+    };
+  });
+}
+
+function getExtractedText() {
+  const tas = document.querySelectorAll('#photoExtractedText');
+  for (const ta of tas) { if (ta.value.trim()) return ta.value; }
+  return '';
+}
+
+// ─── 핵심 OCR (API → Tesseract 자동 폴백) ─────────────────────
+async function runOCR(progressText, progressBar) {
+  // 전처리
+  progressText.textContent = '이미지 전처리 중…';
+  progressBar.style.width = '8%';
+  const processedList = [];
+  for (let i = 0; i < photoFiles.length; i++) {
+    const p = await preprocessImage(photoFiles[i].dataUrl);
+    photoFiles[i].processedDataUrl = p;
+    processedList.push(p);
+  }
+
+  // Claude API 시도
+  progressText.textContent = `Claude Vision으로 ${photoFiles.length}장 분석 중…`;
+  progressBar.style.width = '18%';
+  try {
+    const imageContents = processedList.map((dataUrl, idx) => {
+      const [hdr, b64] = dataUrl.split(',');
+      const mt = hdr.match(/data:([^;]+)/)[1];
+      return [
+        { type: 'text', text: `[사진 ${idx+1}/${processedList.length}]` },
+        { type: 'image', source: { type: 'base64', media_type: mt, data: b64 } }
+      ];
+    }).flat();
+
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514', max_tokens: 2000,
+        messages: [{ role: 'user', content: [...imageContents, { type: 'text',
+          text: `다음 ${processedList.length}장의 사진에서 모든 글자(텍스트)를 읽어서 그대로 옮겨주세요.
+규칙: 각 사진 번호를 [사진 N] 형태로 구분 표시 / 손글씨·인쇄 글자·메모 모두 빠짐없이 / 글자 없으면 [글자 없음] / 원문 그대로`
+        }] }]
+      })
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error.message);
+    progressBar.style.width = '55%';
+    return data.content.map(b => b.text || '').join('');
+
+  } catch (apiErr) {
+    // Tesseract 폴백
+    console.warn('Claude API 불가 → Tesseract 폴백:', apiErr.message);
+    if (typeof Tesseract === 'undefined') throw new Error('Tesseract.js 로드 실패. 인터넷 연결 확인 후 새로고침하세요.');
+
+    progressText.textContent = 'Tesseract OCR 초기화 중… (한/영 모델, 최초 1회 다운로드)';
+    progressBar.style.width = '20%';
+
+    const worker = await Tesseract.createWorker(['kor', 'eng'], 1, {
+      logger: m => {
+        if (m.status === 'recognizing text')
+          progressBar.style.width = Math.round(20 + m.progress * 35) + '%';
+        else if (m.status.includes('loading'))
+          progressText.textContent = '언어 모델 로딩 중… (최초 1회만)';
+      }
+    });
+
+    let all = '';
+    for (let i = 0; i < processedList.length; i++) {
+      progressText.textContent = `Tesseract: [${i+1}/${processedList.length}] 인식 중…`;
+      const { data: { text } } = await worker.recognize(processedList[i]);
+      all += `[사진 ${i+1}]
+${text.trim() || '[글자 없음]'}
+
+`;
+      progressBar.style.width = Math.round(20 + ((i+1)/processedList.length)*35) + '%';
+    }
+    await worker.terminate();
+    return all.trim();
+  }
+}
+
+// ─── 글자만 추출 버튼 ─────────────────────────────────────────
+async function extractOnly() {
+  if (!photoFiles.length) { alert('먼저 사진을 추가해주세요.'); return; }
+  const progressEl   = document.getElementById('photoProgress');
+  const progressText = document.getElementById('photoProgressText');
+  const progressBar  = document.getElementById('photoProgressBar');
+  const btn          = document.getElementById('photoExtractOnlyBtn');
+  btn.disabled = true; btn.textContent = '⏳ 추출 중…';
+  progressEl.classList.add('active'); progressBar.style.width = '5%';
+  try {
+    const text = await runOCR(progressText, progressBar);
+    setExtractedText(text);
+    progressBar.style.width = '100%';
+    progressText.textContent = '✅ 글자 추출 완료! 아래에서 원문을 확인·수정하세요.';
+    setTimeout(() => progressEl.classList.remove('active'), 2500);
+  } catch (err) {
+    progressEl.classList.remove('active');
+    showPhotoInfoBanner('❌ 추출 오류: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = '📖 글자만 추출';
+  }
+}
+
+// ─── 글자 추출 + 가사 생성 ────────────────────────────────────
+async function extractAndGenerateLyrics() {
+  if (!photoFiles.length) { alert('먼저 사진을 추가해주세요.'); return; }
+  const progressEl   = document.getElementById('photoProgress');
+  const progressText = document.getElementById('photoProgressText');
+  const progressBar  = document.getElementById('photoProgressBar');
+  const btn          = document.getElementById('photoExtractBtn');
+  const resultArea   = document.getElementById('photoLyricsResultArea');
+  const resultTA     = document.getElementById('photoLyricsResult');
+  btn.disabled = true; btn.textContent = '⏳ 처리 중…';
+  progressEl.classList.add('active'); progressBar.style.width = '5%';
+
+  try {
+    // Step 1: OCR
+    const extracted = await runOCR(progressText, progressBar);
+    setExtractedText(extracted);
+
+    const photoMode = document.querySelector('input[name="photoMode"]:checked')?.value || '가사로 정리';
+    if (photoMode === '원문 그대로') {
+      resultTA.value = extracted; resultArea.style.display = 'block';
+      progressBar.style.width = '100%'; progressText.textContent = '✅ 완료!';
+      setTimeout(() => progressEl.classList.remove('active'), 2000);
+      return;
+    }
+
+    // Step 2: 가사 생성
+    progressBar.style.width = '60%';
+    progressText.textContent = '글자 추출 완료! 가사를 생성하는 중…';
+
+    const textToUse = getExtractedText() || extracted;
+    const extraInstr = document.getElementById('photoExtraInstruction').value;
+    const mood  = [...document.querySelectorAll('#moodGroup input:checked')].map(i=>i.value).join(', ') || '잔잔한';
+    const theme = [...document.querySelectorAll('#themeGroup input:checked')].map(i=>i.value).join(', ') || '그리움';
+    const genre = document.getElementById('genre')?.value || '감성 팝 발라드';
+
+    const lyricsPrompt = photoMode === '가사로 정리'
+      ? `다음은 사진에서 추출한 텍스트입니다:
+
+${textToUse}
+
+이 글을 한국어 노래 가사로 정리해주세요.
+장르: ${genre} / 정서: ${mood} / 주제: ${theme}
+구조: [Verse 1] [Pre-Chorus] [Chorus] [Verse 2] [Chorus] [Bridge] [Final Chorus]
+원래 글의 감정과 표현을 최대한 살려주세요.${extraInstr ? '\n추가 지시: '+extraInstr : ''}`
+      : `다음은 사진에서 추출한 텍스트입니다:
+
+${textToUse}
+
+이 내용을 바탕으로 새로운 한국어 노래 가사를 창작해주세요.
+장르: ${genre} / 정서: ${mood} / 주제: ${theme}
+구조: [Verse 1] [Pre-Chorus] [Chorus] [Verse 2] [Chorus] [Bridge] [Final Chorus]
+원래 글의 핵심 감정·상황을 반영하되 시적으로 다시 써주세요.${extraInstr ? '\n추가 지시: '+extraInstr : ''}`;
+
+    const lyricsResp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1500,
+        messages: [{ role: 'user', content: lyricsPrompt }] })
+    });
+    if (!lyricsResp.ok) throw new Error(`가사 생성 HTTP ${lyricsResp.status}`);
+    const ld = await lyricsResp.json();
+    if (ld.error) throw new Error(ld.error.message);
+
+    resultTA.value = ld.content.map(b => b.text||'').join('');
+    resultArea.style.display = 'block';
+    progressBar.style.width = '100%';
+    progressText.textContent = '✅ 완료! 아래 가사를 확인하세요.';
+    setTimeout(() => progressEl.classList.remove('active'), 3000);
+
+  } catch (err) {
+    progressEl.classList.remove('active');
+    if (getExtractedText()) {
+      // 글자 추출 성공, 가사 생성만 실패 → alert 없이 인라인 배너로 안내
+      showPhotoInfoBanner(
+        '✅ 글자 추출 완료! 가사 자동 생성은 Claude.ai 아티팩트에서만 동작합니다. 아래 원문을 확인·수정 후 복사해 Claude 채팅에 붙여넣기 하세요.',
+        'info'
+      );
+    } else {
+      showPhotoInfoBanner('❌ 추출 오류: ' + err.message, 'error');
+    }
+  } finally {
+    btn.disabled = false; btn.textContent = '🔍 글자 읽어서 가사 생성';
+  }
+}
+
+function applyPhotoLyricsToMain() {
+  const lyrics = document.getElementById('photoLyricsResult').value;
+  if (!lyrics) { alert('먼저 가사를 생성해주세요.'); return; }
+  const lyricsResult = document.getElementById('lyricsResult');
+  if (lyricsResult) {
+    lyricsResult.value = lyrics;
+    const directLyrics = document.getElementById('directLyrics');
+    if (directLyrics) directLyrics.value = lyrics;
+    saveLS();
+    alert('✅ 가사 생성 단계(⑥)에 반영되었습니다!\n사이드바에서 "가사 생성 / 편곡" 탭을 확인하세요.');
+    goTo('p6');
+  }
+}
+
+function copyPhotoLyrics() {
+  const lyrics = document.getElementById('photoLyricsResult').value;
+  if (!lyrics) return;
+  navigator.clipboard.writeText(lyrics).then(() => {
+    const msg = document.getElementById('photoExtractMsg');
+    if (msg) { msg.textContent = '✓ 복사됨'; msg.classList.add('show'); setTimeout(() => msg.classList.remove('show'), 2000); }
+  });
+}
+
+// 초기화 시 모드 배지 업데이트
+document.addEventListener('DOMContentLoaded', updateModeBadge);
+
+// ─── 인라인 배너 표시 함수 ─────────────────────────────────────
+function showPhotoInfoBanner(msg, type) {
+  // type: 'info' | 'error'
+  const banner  = document.getElementById('photoInfoBanner');
+  const msgEl   = document.getElementById('photoInfoMsg');
+  const iconEl  = document.getElementById('photoInfoIcon');
+  if (!banner || !msgEl) return;
+  msgEl.textContent = msg;
+  iconEl.textContent = type === 'error' ? '❌' : 'ℹ️';
+  banner.className = 'photo-info-banner show ' + (type || 'info');
+  // 10초 후 자동 닫기
+  setTimeout(() => { banner.className = 'photo-info-banner'; }, 10000);
+}
+
+// ══════════════════════════════════════════════
+// 테마 전환 (다크 / 종이)
+// ══════════════════════════════════════════════
+function setTheme(theme) {
+  document.body.classList.remove('theme-dark', 'theme-paper');
+  document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+
+  if (theme === 'paper') {
+    document.body.classList.add('theme-paper');
+    document.getElementById('themeBtn-paper').classList.add('active');
+  } else {
+    // 다크는 기본 (클래스 없음)
+    document.getElementById('themeBtn-dark').classList.add('active');
+  }
+  try { localStorage.setItem('songStudio_theme', theme); } catch(e) {}
+}
+
+// 저장된 테마 복원
+(function() {
+  try {
+    const saved = localStorage.getItem('songStudio_theme');
+    if (saved === 'paper') setTheme('paper');
+  } catch(e) {}
+})();
+
+// ══════════════════════════════════════════════
+// AUTO-SAVE (STEP2: 전체 이벤트 위임 + debounce)
+// ══════════════════════════════════════════════
+const LS_KEY = 'songStudio_v2';
+const MAX_VERSIONS = 30;
+
+// 자동저장 상태 표시
+function setAutosaveStatus(status, timeStr) {
+  const bar = document.getElementById('autosaveBar');
+  const txt = document.getElementById('autosaveText');
+  if (!bar || !txt) return;
+  bar.className = status; // 'saving' | 'saved' | 'warn'
+  if (status === 'saving') {
+    txt.textContent = '저장 중…';
+  } else if (status === 'saved') {
+    txt.textContent = timeStr ? `자동 저장됨 ✓  ${timeStr}` : '자동 저장됨 ✓';
+  } else {
+    txt.textContent = '저장 실패 (저장공간 부족)';
+  }
+}
+
+// debounce 유틸리티
+function debounce(fn, ms) {
+  let timer;
+  return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), ms); };
+}
+
+// 자동저장 실행 (debounce 300ms)
+const autoSave = debounce(() => {
+  setAutosaveStatus('saving');
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+  try {
+    pruneVersions(); // 30개 초과 시 정리
+    localStorage.setItem(LS_KEY, JSON.stringify(collectAllData()));
+    setAutosaveStatus('saved', timeStr);
+  } catch (e) {
+    setAutosaveStatus('warn');
+  }
+}, 300);
+
+// 버전 30개 초과 시 오래된 것부터 삭제
+function pruneVersions() {
+  if (state.versions.length > MAX_VERSIONS) {
+    state.versions = state.versions.slice(0, MAX_VERSIONS);
+  }
+}
+
+// 전체 input/textarea/select/checkbox/radio 이벤트 위임 (자동저장 트리거)
+document.getElementById('main').addEventListener('input', autoSave);
+document.getElementById('main').addEventListener('change', autoSave);
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+loadLS();
+renderVersions();
+recalcDoneSteps();
+initPillStates(); // checked 항목에 .selected 클래스 적용
+</script>
+</body>
+</html>
